@@ -1,0 +1,14 @@
+<cmd name="YXV2Table">
+
+
+<options>
+	<option name="nullvalue" opt="n" longopt="null" default="N/A" type="string"></option>
+	<option name="firstheader" opt="c" longopt="firstheader" default="#" type="string"></option>
+</options>
+
+<enum name="AggregatorType">
+	<item name="simple"/>
+	<item name="first"/>
+</enum>
+
+</cmd>
