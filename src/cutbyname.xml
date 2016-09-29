@@ -1,0 +1,12 @@
+<cmd name="CutByNames">
+
+
+<options>
+	<option name="delimiter" opt="d" longopt="delim" default="\t" type="char"></option>
+	<option name="columns" opt="t" longopt="column"  type="string-list"></option>
+	<option name="inverse" opt="v" longopt="inverse" type="bool"></option>
+	<option name="abort_if_missing" opt="w" longopt="warning" type="bool"></option>
+</options>
+
+
+</cmd>
