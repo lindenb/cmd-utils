@@ -4,6 +4,7 @@
 <options>
 	<option name="nullvalue" opt="n" longopt="null" default="N/A" type="string"></option>
 	<option name="firstheader" opt="c" longopt="firstheader" default="#" type="string"></option>
+	<option name="delimiter" opt="d" longopt="delim" default="\t" type="char"></option>
 </options>
 
 <enum name="AggregatorType">

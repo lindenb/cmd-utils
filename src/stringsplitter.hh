@@ -10,6 +10,18 @@ public:
 	StringSplitter():delim("\t"),ignore_trailing(true) {
 		}
 	
+	StringSplitter& set_delimiter(std::string s)
+		{
+		this->delim = s;
+		return *this;
+		}
+	StringSplitter& set_delimiter(char c)
+		{
+		this->delim.clear();
+		this->delim +=c;
+		return *this;
+		}
+	
 	std::vector<std::string>::size_type split(const std::string& s,std::vector<std::string>& tokens) {
 		tokens.clear();
 		std::string::size_type prev= 0UL;
