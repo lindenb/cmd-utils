@@ -5,11 +5,17 @@
 	<option name="nullvalue" opt="n" longopt="null" default="N/A" type="string"></option>
 	<option name="firstheader" opt="c" longopt="firstheader" default="#" type="string"></option>
 	<option name="delimiter" opt="d" longopt="delim" default="\t" type="char"></option>
+	<option name="aggregator" opt="a" longopt="aggregator" default="simple" type="enum">
+		<item name="simple"/>
+		<item name="first"/>
+		<item name="sum"/>
+		<item name="min"/>
+		<item name="max"/>
+		<item name="mean"/>
+		<item name="set"/>
+		<item name="median"/>
+	</option>
 </options>
 
-<enum name="AggregatorType">
-	<item name="simple"/>
-	<item name="first"/>
-</enum>
 
 </cmd>

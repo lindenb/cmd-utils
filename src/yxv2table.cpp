@@ -1,4 +1,5 @@
 #include <fstream>
+#include <algorithm>
 #include <map>
 #include "yxv2table.tab.h"
 #include "stringsplitter.hh"
@@ -8,9 +9,14 @@ using namespace std;
 class Aggregator
 	{
 	public:
+		Aggregator() {}
 		virtual ~Aggregator(){}
 		virtual void visit(const std::string& s)=0;
 		virtual void print(std::ostream& out)=0;
+		double strtod(const std::string& s) {
+			char* p2=0;
+			return std::strtod(s.c_str(),&p2);
+			}
 	};
 
 
@@ -37,13 +43,115 @@ class YXV2Table: public YXV2TableBase
 		public:
 			std::string value;
 			virtual ~SimpleAggregator(){}
-			virtual void visit(const std::string& s) { value.assign(s);};
+			virtual void visit(const std::string& s) { value.assign(s);}
 			virtual void print(std::ostream& out) { out << this->value; }
+		};
+	
+	class FirstAggregator: public Aggregator
+		{
+		public:
+			std::string value;
+			bool seen;
+			FirstAggregator():seen(false){}
+			virtual ~FirstAggregator(){}
+			virtual void visit(const std::string& s) {if(!seen) value.assign(s);seen=true;}
+			virtual void print(std::ostream& out) {  out << this->value; }
+		};
+	
+	class SumAggregator: public Aggregator
+		{
+		public:
+			double total;
+			SumAggregator():total(0){}
+			virtual ~SumAggregator(){}
+			virtual void visit(const std::string& s) {total+=strtod(s);}
+			virtual void print(std::ostream& out) {  out << this->total; }
+		};
+	class MeanAggregator: public Aggregator
+		{
+		public:
+			double total;
+			int n;
+			MeanAggregator():total(0),n(0){}
+			virtual ~MeanAggregator(){}
+			virtual void visit(const std::string& s) {total+=strtod(s);++n;}
+			virtual void print(std::ostream& out) {  out << (this->total/n); }
+		};
+	
+	class MinAggregator: public Aggregator
+		{
+		public:
+			double value;
+			bool first;
+			MinAggregator():value(0),first(true){}
+			virtual ~MinAggregator(){}
+			virtual void visit(const std::string& s) {double d=strtod(s);value=(first || d<value?d:value) ; first=false;}
+			virtual void print(std::ostream& out) {  out << value; }
+		};
+	
+	class MaxAggregator: public Aggregator
+		{
+		public:
+			double value;
+			bool first;
+			MaxAggregator():value(0),first(true){}
+			virtual ~MaxAggregator(){}
+			virtual void visit(const std::string& s) {double d=strtod(s);value=(first || d>value?d:value) ; first=false;}
+			virtual void print(std::ostream& out) {  out << value; }
+		};
+	
+	class SetAggregator: public Aggregator
+		{
+		public:
+			set<string> values;
+			SetAggregator() {}
+			virtual ~SetAggregator(){}
+			virtual void visit(const std::string& s) {values.insert(s);}
+			virtual void print(std::ostream& out) {
+				bool first(true);
+				for(set<string>::iterator r=values.begin();r!=values.end();++r)
+					{
+					if(!first) out <<";";
+					first=false; 
+					out << (*r);
+					}
+				}
+		};
+	
+	class MedianAggregator: public Aggregator
+		{
+		public:
+			vector<double> values;
+			MedianAggregator() {}
+			virtual ~MedianAggregator(){}
+			virtual void visit(const std::string& s) {values.push_back(strtod(s));}
+			virtual void print(std::ostream& out) {
+				std::sort(values.begin(),values.end());
+				unsigned int i=values.size()/2;
+				if(values.size()%2==0)
+					{
+					out << (values[i-1]+values[i])/2.0;
+					}
+				else
+					{
+					out << values[i];
+					}
+				}
 		};
 	
 	Aggregator* build()
 		{
-		return new SimpleAggregator();
+		switch(this->aggregator)
+			{
+			case E_aggregator_first :return new FirstAggregator();
+			case E_aggregator_sum :return new SumAggregator();
+			case E_aggregator_mean :return new MeanAggregator();
+			case E_aggregator_min :return new MinAggregator();
+			case E_aggregator_max :return new MaxAggregator();
+			case E_aggregator_set :return new SetAggregator();
+			case E_aggregator_median :return new MedianAggregator();
+			default: return new SimpleAggregator();
+			}
 		}
 
 	void run(const char* fname,istream& in)
