@@ -155,7 +155,7 @@ class <xsl:value-of select="@name"/>Base : public AbstractApplication
 		out &lt;&lt; "Options:" &lt;&lt; std::endl;
 		out &lt;&lt; "  -h|--help this screen" &lt;&lt; std::endl;
 		out &lt;&lt; "  --version print version and exit." &lt;&lt; std::endl;
-		<xsl:for-each select="options/option">out &lt;&lt; "  <xsl:if test="@opt">-<xsl:value-of select="@opt"/></xsl:if><xsl:if test="@opt and @longopt">|</xsl:if><xsl:if test="@longopt">--<xsl:value-of select="@longopt"/></xsl:if><xsl:text>   </xsl:text><xsl:value-of select="@description"/><xsl:choose>
+		<xsl:for-each select="options/option">out &lt;&lt; "  <xsl:if test="@opt">-<xsl:value-of select="@opt"/></xsl:if><xsl:if test="@opt and @longopt">|</xsl:if><xsl:if test="@longopt">--<xsl:value-of select="@longopt"/></xsl:if><xsl:text>   </xsl:text><xsl:apply-templates select="description"/><xsl:choose>
 		<xsl:when test="@type='enum'">. Possible values: [<xsl:for-each select="item"><xsl:if test="position()&gt;1">|</xsl:if><xsl:value-of select="@name"/></xsl:for-each>]. Default: \"" &lt;&lt; <xsl:value-of select="@name"/>_to_string(this-&gt;<xsl:value-of select="@name"/>) &lt;&lt; "\"</xsl:when>
 		<xsl:when test="not(@type = 'bool' or @type = 'char*' or @type='string-list'  or @type='string-set') and @default">. Default: \"" &lt;&lt; this-><xsl:value-of select="@name"/> &lt;&lt;  "\" </xsl:when>
 		<xsl:otherwise></xsl:otherwise></xsl:choose>."  &lt;&lt; std::endl;

@@ -1,15 +1,20 @@
 CCFLAGS=-Wall -g
 CC=g++
 .PHONY:all
-all:  cutbyname yxv2table
 
-cutbyname: $(addprefix cutbyname.,cpp xml)
-	xsltproc preproc.xsl $(filter %.xml,$^) | xsltproc xml2h.xsl -  > $(addsuffix .tab.h,$(basename $<))
-	$(CC) -o $@ $(CCFLAGS) $<
+define compile0
 
-yxv2table: $(addprefix yxv2table.,cpp xml)
-	xsltproc preproc.xsl $(filter %.xml,$^) | xsltproc xml2h.xsl -  > $(addsuffix .tab.h,$(basename $<))
-	$(CC) -o $@ $(CCFLAGS) $<
+$(1) : $$(addprefix $(1).,cpp xml)  xml2h.xsl preproc.xsl
+	xsltproc preproc.xsl $$(filter %.xml,$$^) | xsltproc xml2h.xsl -  > $$(addsuffix .tab.h,$$(basename $$<))
+	$$(CC) -o $$@ $$(CCFLAGS) $$<
+
+endef
+
+APPS=cutbyname yxv2table math-sum
+
+all:  ${APPS}
+
+$(eval $(foreach A,${APPS},$(call compile0,${A})))
 
 
 
