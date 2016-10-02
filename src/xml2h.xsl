@@ -30,7 +30,7 @@
 class <xsl:value-of select="@name"/>Base : public AbstractApplication
 	{
 	public:
-		<xsl:for-each select="options/option[@type='enum']">
+		<xsl:for-each select="options/option[@type='enum' or @type='enum-set']">
 		
 		enum E_<xsl:value-of select="@name"/>_T
 			{
@@ -93,6 +93,8 @@ class <xsl:value-of select="@name"/>Base : public AbstractApplication
 				</xsl:when>
 				<xsl:when test="@type = 'enum'">int <xsl:value-of select="@name"/>;
 				</xsl:when>
+				<xsl:when test="@type = 'enum-set'">std::set&lt;int&gt; <xsl:value-of select="@name"/>;
+				</xsl:when>
 				<xsl:otherwise><xsl:message terminate="yes">undefined type</xsl:message></xsl:otherwise>
 			</xsl:choose>
 		</xsl:for-each>
@@ -104,6 +106,7 @@ class <xsl:value-of select="@name"/>Base : public AbstractApplication
 				<xsl:when test="@type = 'bool'">false</xsl:when>
 				<xsl:when test="@type = 'string-list'"></xsl:when>
 				<xsl:when test="@type = 'string-set'"></xsl:when>
+				<xsl:when test="@type = 'enum-set'"></xsl:when>
 				<xsl:when test="@type = 'enum'">
 					<xsl:choose>
 						<xsl:when test="@default">E_<xsl:value-of select="@name"/>_<xsl:value-of select="@default"/></xsl:when>
@@ -148,16 +151,20 @@ class <xsl:value-of select="@name"/>Base : public AbstractApplication
 		}
 	virtual ~<xsl:value-of select="@name"/>Base() {
 		}
+		
+	virtual const char* get_application_name() const {
+		return "<xsl:value-of select="@name"/>";
+		}
 	
 	virtual void usage(std::ostream&amp; out) {
-		out &lt;&lt; "<xsl:value-of select="@name"/>" &lt;&lt; std::endl;
+		out &lt;&lt; this-&gt;get_application_name() &lt;&lt; std::endl;
 		out &lt;&lt; "Compilation: " &lt;&lt; __DATE__ &lt;&lt; std::endl;
 		out &lt;&lt; "Options:" &lt;&lt; std::endl;
 		out &lt;&lt; "  -h|--help this screen" &lt;&lt; std::endl;
 		out &lt;&lt; "  --version print version and exit." &lt;&lt; std::endl;
 		<xsl:for-each select="options/option">out &lt;&lt; "  <xsl:if test="@opt">-<xsl:value-of select="@opt"/></xsl:if><xsl:if test="@opt and @longopt">|</xsl:if><xsl:if test="@longopt">--<xsl:value-of select="@longopt"/></xsl:if><xsl:text>   </xsl:text><xsl:apply-templates select="description"/><xsl:choose>
 		<xsl:when test="@type='enum'">. Possible values: [<xsl:for-each select="item"><xsl:if test="position()&gt;1">|</xsl:if><xsl:value-of select="@name"/></xsl:for-each>]. Default: \"" &lt;&lt; <xsl:value-of select="@name"/>_to_string(this-&gt;<xsl:value-of select="@name"/>) &lt;&lt; "\"</xsl:when>
-		<xsl:when test="not(@type = 'bool' or @type = 'char*' or @type='string-list'  or @type='string-set') and @default">. Default: \"" &lt;&lt; this-><xsl:value-of select="@name"/> &lt;&lt;  "\" </xsl:when>
+		<xsl:when test="not(@type = 'bool' or @type = 'char*' or @type='string-list'  or @type='string-set'   or @type='enum-set') and @default">. Default: \"" &lt;&lt; this-><xsl:value-of select="@name"/> &lt;&lt;  "\" </xsl:when>
 		<xsl:otherwise></xsl:otherwise></xsl:choose>."  &lt;&lt; std::endl;
 		</xsl:for-each>
 		out &lt;&lt; std::endl;
@@ -233,6 +240,19 @@ class <xsl:value-of select="@name"/>Base : public AbstractApplication
 						std::exit(EXIT_FAILURE);
 					}
 					</xsl:when>
+					
+					<xsl:when test="@type = 'enum-set'">{
+					int <xsl:value-of select="generate-id(.)"/> = find_<xsl:value-of select="@name"/>_by_name( optarg); 
+					if(  <xsl:value-of select="generate-id(.)"/> == -1 ) {
+						std::cerr &lt;&lt; "invalid enum-item in option <xsl:apply-templates select="." mode="label"/>." &lt;&lt; std::endl;
+						std::exit(EXIT_FAILURE);
+					}
+					this-&gt;<xsl:value-of select="@name"/>.insert(<xsl:value-of select="generate-id(.)"/>);					
+					
+					break;
+					}
+					</xsl:when>
+					
 					<xsl:when test="@type = 'char'"> if(std::strcmp(optarg,"\\t")==0) {
 						this-&gt;<xsl:value-of select="@name"/> = '\t';
 						}
@@ -279,7 +299,7 @@ class <xsl:value-of select="@name"/>Base : public AbstractApplication
 						}
 					break;
 					}</xsl:when>
-					<xsl:otherwise><xsl:message terminate="yes">undefined type</xsl:message></xsl:otherwise>
+					<xsl:otherwise><xsl:message terminate="yes">undefined type <xsl:value-of select="@type"/></xsl:message></xsl:otherwise>
 					</xsl:choose>
 					<xsl:text>break;
 				</xsl:text>

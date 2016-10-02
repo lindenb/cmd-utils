@@ -1,0 +1,12 @@
+<cmd name="Table2YXV">
+
+
+<options>
+	<option name="lastycolumn" opt="y" longopt="ycolumn" default="1" type="int">
+		<description>Last Column to be included as a vertical column</description>
+	</option>
+	<option name="delimiter" opt="d" longopt="delim" default="\t" type="char"></option>
+</options>
+
+
+</cmd>

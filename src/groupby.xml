@@ -1,0 +1,19 @@
+<cmd name="GroupBy">
+
+
+<options>
+	<option name="delimiter" opt="d" longopt="delim" default="\t" type="char"></option>
+	<option name="aggregators" opt="a" longopt="aggregator" default="simple" type="enum-set">
+		<item name="simple"/>
+		<item name="first"/>
+		<item name="sum"/>
+		<item name="min"/>
+		<item name="max"/>
+		<item name="mean"/>
+		<item name="set"/>
+		<item name="median"/>
+	</option>
+</options>
+
+
+</cmd>
