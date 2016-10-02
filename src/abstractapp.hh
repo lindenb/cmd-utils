@@ -21,6 +21,10 @@ class AbstractApplication
 		}
 		
 		
+		virtual void processFILE(const char* f,std::FILE* in) {
+		THROW("no implemented");
+		}
+		
 		virtual void oneOrStdin(int optind,int argc,char** argv)
 			{
 			if(optind==argc)
@@ -61,6 +65,28 @@ class AbstractApplication
 					}
 				}
 			}
+
+		virtual void fManyOrStdin(int optind,int argc,char** argv)
+			{
+			if(optind==argc)
+				{
+				processFILE("<STDIN>",stdin);
+				}
+			else {
+				while(optind < argc)
+					{
+					FILE* f = std::fopen(argv[optind],"r");
+					if(f==NULL) {
+						THROW("Cannot open \"" << argv[optind] << "\": " << std::strerror(errno) << ".");
+						}
+					processFILE(argv[optind],f);
+					std::fclose(f);
+					++optind;
+					}
+				}
+			}
+
+
 			
 		virtual int main(int argc,char** argv)=0;
 		

@@ -13,7 +13,7 @@ class MathSum: public AbstractMath<MathSumBase>
 		virtual ~MathSum() {}
 		virtual int main(int argc,char** argv) {
 			int optind = parseOptions(argc,argv);
-			this->execute(optind,argc,&argv[optind]);
+			this->fManyOrStdin(optind,argc,&argv[optind]);
 			cout << total <<endl;
 			return EXIT_SUCCESS;
 			}

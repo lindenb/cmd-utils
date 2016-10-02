@@ -18,7 +18,7 @@ class AbstractMath: public T
 		
 	
 	protected:	
-		virtual void run(const char* input,FILE* in) {
+		virtual void processFILE(const char* input,FILE* in) {
 			while(!std::feof(in))
 				{
 				double num;
@@ -33,25 +33,7 @@ class AbstractMath: public T
 				}
 			}
 		
-		virtual int execute(int optind,int argc,char** argv) {
-			if(optind==argc)
-				{
-				run(0,stdin);
-				}
-			else while(optind<argc)
-				{
-				std::FILE* in=fopen(argv[optind],"r");
-				if(in==NULL) {
-					std::cerr << "Cannot open " << argv[optind] << ": "
-						<< std::strerror(errno) << "." << std::endl;
-					return EXIT_FAILURE;
-					}
-				run(argv[optind],in);
-				std::fclose(in);
-				++optind;
-				}
-			return EXIT_SUCCESS;
-			}
+		
 	};
 
 #endif
