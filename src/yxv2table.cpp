@@ -98,7 +98,7 @@ class YXV2Table: public YXV2TableBase
 	
 		}
 	
-	int main(int argc,char** argv)
+	virtual int main(int argc,char** argv)
 		{
 		int optind = parseOptions(argc,argv);
 		oneOrStdin(optind,argc,argv);

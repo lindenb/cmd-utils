@@ -1,4 +1,5 @@
-
+#ifndef STRING_SPLITTER
+#define STRING_SPLITTER
 #include <vector>
 #include <string>
 
@@ -48,3 +49,6 @@ public:
 		return tokens;
 	}
 };
+
+#endif
+

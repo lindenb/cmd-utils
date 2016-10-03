@@ -9,13 +9,11 @@ class CutByNames: public CutByNamesBase {
 public:
 	StringSplitter splitter;
 	
-	void run(const char* fname,istream& in)
-		{
+		virtual void processIstream(const char* f,std::istream& in) {
 		string line;
 		if(!getline(in,line))
 			{
-			cerr << "Cannot read the first line." <<  endl;
-			exit(EXIT_FAILURE);
+			THROW("Cannot read the first line." );
 			}
 		std::vector<std::string> header=splitter.split(line);
 		map<string,size_t> header2col;
@@ -27,8 +25,7 @@ public:
 			if(r==this->columns.end()) continue;
 			if( header2col.find(header.at(i))!= header2col.end())
 				{
-				cerr << "Duplicate column " << header.at(i) <<" in header";
-				exit(EXIT_FAILURE);
+				THROW("Duplicate column " << header.at(i) <<" in header");
 				}
 			header2col.insert(make_pair(header.at(i),i));
 			offsets.insert(i);
@@ -85,30 +82,11 @@ public:
 			} while(getline(in,line));
 		
 		}
-	int main(int argc,char** argv)
+	virtual int main(int argc,char** argv)
 		{
 		int optind = parseOptions(argc,argv);
 		splitter.set_delimiter(this->delimiter);
-		if(optind==argc)
-			{
-			run(0,cin);
-			}
-		else if(optind+1==argc)
-			{
-			ifstream f(argv[optind]);
-			if(!f.is_open()) {
-				cerr << "Cannot open " << argv[optind] << ": "
-					<< strerror(errno) << "." << endl;
-				return EXIT_FAILURE;
-				}
-			run(argv[optind],f);
-			f.close();
-			}
-		else
-			{
-			cerr << "Illegal Number of arguments"<< endl;
-			return EXIT_FAILURE;
-			}
+		oneOrStdin(optind,argc,argv);
 		return EXIT_SUCCESS;
 		}
 };

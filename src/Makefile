@@ -10,7 +10,7 @@ $(1) : $$(addprefix $(1).,cpp xml)  xml2h.xsl preproc.xsl
 
 endef
 
-APPS=groupby table2yxv cutbyname yxv2table math-sum
+APPS=tab2spaces groupby table2yxv cutbyname yxv2table math-sum
 
 all:  ${APPS}
 

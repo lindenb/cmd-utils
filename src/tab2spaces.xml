@@ -1,0 +1,11 @@
+<cmd name="Tab2Spaces">
+
+
+<options>
+	<option name="tabsize" opt="t" longopt="tabsize" default="4" type="int">
+	
+	</option>
+</options>
+
+
+</cmd>
