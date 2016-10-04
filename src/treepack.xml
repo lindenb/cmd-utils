@@ -1,0 +1,18 @@
+<cmd name="TreePack">
+
+
+<options>
+	<option name="delimiter" opt="d" longopt="delim" default="\t" type="char"></option>
+	<option name="last_column_is_weight" type="bool" opt="a" longopt="lastw" >
+		<description>last column is weight</description>
+	</option>
+	<option name="image_width" type="int" opt="W" longopt="width" default="-1">
+		<description>image width</description>
+	</option>
+	<option name="image_height" type="int" opt="H" longopt="height" default="-1" >
+		<description>image height</description>
+	</option>
+</options>
+
+
+</cmd>

@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iostream>
 #include "throw.hh"
+#include "config.h"
 
 class AbstractApplication
 	{
