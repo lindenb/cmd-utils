@@ -9,7 +9,6 @@
 #include "hershey.hh"
 #include "treepack.tab.h"
 
-
 using namespace std;
 
 template <typename T>
@@ -340,6 +339,10 @@ class TreePackApp: public TreePackBase
 
 			::cairo_destroy (cr);
 			::cairo_surface_destroy (surface);
+#else 
+
+	
+
 #endif
 			
 			}

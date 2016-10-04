@@ -6,11 +6,14 @@
 	<option name="last_column_is_weight" type="bool" opt="a" longopt="lastw" >
 		<description>last column is weight</description>
 	</option>
-	<option name="image_width" type="int" opt="W" longopt="width" default="-1">
+	<option name="image_width" type="int" opt="W" longopt="width" default="1000">
 		<description>image width</description>
 	</option>
-	<option name="image_height" type="int" opt="H" longopt="height" default="-1" >
+	<option name="image_height" type="int" opt="H" longopt="height" default="1000" >
 		<description>image height</description>
+	</option>
+	<option name="output_name" type="char*" opt="o" longopt="out">
+		<description>Output file</description>
 	</option>
 </options>
 

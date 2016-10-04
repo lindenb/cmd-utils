@@ -25,7 +25,6 @@ THE SOFTWARE.
 #ifndef HERSHEY_H
 #define HERSHEY_H
 #include <vector>
-#include <cairo.h>
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
@@ -50,10 +49,8 @@ class Hershey
 			int op;
 			};
 		const int MOVETO;
-		const int LINETO,
+		const int LINETO;
 		std::vector<Operator> array;
-		void charToPathOp(char letter);
-		const char* charToHersheyString(char c);
 	public:
 		double scalex;
 		double scaley;
@@ -64,7 +61,7 @@ class Hershey
 
 		virtual ~Hershey() {
 			}
-			 
+	private:
 		const char* charToHersheyString(char c)
 				{
 				switch(c)
@@ -178,7 +175,46 @@ class Hershey
 					array.push_back(pathOp);
 					}
 				}
+			
+		
+	public:
 
+		void postscript(
+			std::ostream& out,
+			const char* s,
+			double x, double y,
+			double width, double height
+			)
+			{
+			if(s==NULL || width==0 || height==0) return;
+			
+			size_t s_length=strlen(s);
+			if(s_length==0) return;
+	
+			size_t i=0,n;
+			double dx=width/s_length;
+			for(i=0;i < s_length;++i)
+				{
+				charToPathOp(s[i]);
+				for(n=0;n< array.size();++n)
+					{
+					Operator&  p2= array[n];
+					double x2= x+ (p2.x/this->scalex)*dx + dx*i +dx/2.0;
+					double y2= y+ (p2.y/this->scaley)*height +height/2.0 ;
+			
+					if(p2.op == LINETO)
+						{
+						out << x2 << " " << y2 << " lineto ";
+						}
+					else
+						{
+						out << x2 << " " << y2 << " moveto ";
+						}
+					}
+		
+				}	
+			
+			}
 
 #if HAS_LIB_CAIRO == 1
 

@@ -3,30 +3,35 @@ CCFLAGS=-Wall -g
 CC=g++
 .PHONY:all
 
-HAS_CAIRO=$(shell  l)
+define has_lib
+	echo -e "#include <$(1)>\nint main(int argc,char** argv) { return 0;}" > $(addsuffix .tmp.c,$@) && \
+		gcc -o  $(addsuffix .tmp.exe,$@) $(addsuffix .tmp.c,$@) $(3) 2> $(addsuffix .err,$@) && echo "#define $(2) 1" >> $@ || echo "#define $(2) 0" >> $@ 
+	rm -f $(addsuffix .tmp.c,$@) $(addsuffix .tmp.exe,$@) $(addsuffix .err,$@)
+endef
+
 
 define compile0
 
 $(1) : $$(addprefix $(1).,cpp xml)  xml2h.xsl preproc.xsl config.h
 	xsltproc preproc.xsl $$(filter %.xml,$$^) | xsltproc xml2h.xsl -  > $$(addsuffix .tab.h,$$(basename $$<))
-	$$(CC) -o $$@ $$(CCFLAGS) $$<
+	$$(CC) -o $$@ $$(CCFLAGS) $$< $(2)
 
 endef
 
-APPS=treepack tab2spaces groupby table2yxv cutbyname yxv2table math-sum
+APPS0 =  tab2spaces groupby table2yxv cutbyname yxv2table math-sum
+APPS = $(APPS0) treepack
 
-all:  ${APPS}
-	echo "${HAS_CAIRO}"
+all:  $(APPS)
 
 config.h : 
 	echo '#ifndef CONFIG_H' > $@
 	echo '#define CONFIG_H' >> $@
-	ldconfig -p | grep -m1  libcairo | awk 'END {printf("#define HAS_LIB_CAIRO %d\n",(NR>0) );}'>> $@
+	$(call has_lib,cairo/cairo.h,HAS_LIB_CAIRO,-lcairo)
 	echo '#endif' >> $@
 	
 
-$(eval $(foreach A,${APPS},$(call compile0,${A})))
-
+$(eval $(foreach A,${APPS0},$(call compile0,${A},)))
+$(eval $(call compile0,treepack,-lcairo))
 
 
 z:	$(CC) $(CCFLAGS) test.cpp
