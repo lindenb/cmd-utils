@@ -1,13 +1,13 @@
 #include <algorithm>
 #include <memory>
 #include <map>
+#include <libxml/encoding.h>
+#include <libxml/xmlwriter.h>
 #include "config.h"
-#if HAS_LIB_CAIRO == 1
-#include <cairo/cairo.h>
-#endif
 #include "stringsplitter.hh"
 #include "hershey.hh"
 #include "treepack.tab.h"
+
 
 using namespace std;
 
@@ -74,6 +74,7 @@ class DefaultTreePack : public TreePack
 	{
 	public:
 		std::string name;
+		std::string category;
 		DefaultTreePack* parent;
 		std::map<std::string,DefaultTreePack*> children;
 		Rectangle bounds;
@@ -296,6 +297,7 @@ class TreePackApp: public TreePackBase
 					if( r == curr->children.end() )
 						{
 						DefaultTreePack* c= new DefaultTreePack;
+						c->category.assign(header[i]);
 						c->name.assign(tokens[i]);
 						c->parent = curr;
 						c->weight = 1.0;
@@ -317,39 +319,21 @@ class TreePackApp: public TreePackBase
 			root.bounds.width=this->image_width;
 			root.bounds.height=this->image_height;
 			
-#if HAS_LIB_CAIRO == 1
-			cairo_surface_t *surface = ::cairo_image_surface_create (CAIRO_FORMAT_ARGB32, this->image_width, this->image_height);
-			if(surface==0) {
-				cerr << "Cannot allocate image." << endl;
-				exit(EXIT_FAILURE);
-				}
-			cairo_t *cr = ::cairo_create (surface);
-			if(cr==0) {
-				cerr << "Cannot allocate cairo." << endl;
-				exit(EXIT_FAILURE);
-				}
-
-			clog << "PACKING" << endl;
-			paint(&packer,&root,cr);
-
-			if(this->output_name != 0) {
-				clog << "[LOG] saving to " << this->output_name << endl;
-				cairo_surface_write_to_png(surface, this->output_name);
-				}
-
-			::cairo_destroy (cr);
-			::cairo_surface_destroy (surface);
-#else 
-
-	
-
-#endif
-			
+			xmlTextWriterPtr writer = xmlNewTextWriterFilename("-", 0);
+			if(writer==NULL) THROW("cannot create xml writer");
+			xmlTextWriterStartDocument(writer, NULL, "ISO-8859-1", NULL);
+			paint(&packer,&root,writer,0);
+			xmlTextWriterEndDocument(writer);
+			xmlFreeTextWriter(writer);
+			xmlCleanupParser();
+			xmlMemoryDump();
 			}
 
-#if HAS_LIB_CAIRO == 1
-		void paint(Packer* packer,DefaultTreePack* node,cairo_t *cr) {
-			cairo_stroke(cr);    
+#define WRITE_ATTRIBUTE(ATT,VALUE) { ostringstream _os; _os << VALUE; string _s = _os.str(); ::xmlTextWriterWriteAttribute(writer, BAD_CAST ATT, BAD_CAST _s.c_str());}
+ 
+		void paint(Packer* packer,DefaultTreePack* node,xmlTextWriterPtr writer,int depth) {
+			
+			
 			std::vector<TreePack*> items;
 			for(std::map<std::string,DefaultTreePack*>::const_iterator r= node->children.begin();
 						r!= node->children.end();
@@ -360,49 +344,30 @@ class TreePackApp: public TreePackBase
 			if(!node->children.empty()) {		
 				packer->layout(&items,node->bounds);
 				}
-
+		
+			::xmlTextWriterStartElement(writer, BAD_CAST "node");
+			::xmlTextWriterWriteAttribute(writer, BAD_CAST "name", BAD_CAST node->name.c_str());
+			WRITE_ATTRIBUTE("x",node->bounds.x);
+			WRITE_ATTRIBUTE("y",node->bounds.y);
+			if(depth!=0) WRITE_ATTRIBUTE("category",node->category);
+			WRITE_ATTRIBUTE("width",node->bounds.width);
+			WRITE_ATTRIBUTE("height",node->bounds.height);
+			WRITE_ATTRIBUTE("weight",node->getWeight());
+			WRITE_ATTRIBUTE("depth",depth);
+			
+					
 			for(std::map<std::string,DefaultTreePack*>::const_iterator r=  node->children.begin();
 						r!= node->children.end();
 						++r)
 						{
-						::cairo_set_source_rgb(cr, 0, 0, 0);
-						::cairo_set_line_width(cr, 0.5);
-						const Rectangle& rect= r->second->bounds;
-						::cairo_rectangle(cr, rect.x, rect.y, rect.width, rect.height);
-						::cairo_stroke(cr);   
-			
-						paint(packer,r->second,cr);
+						paint(packer,r->second,writer,depth+1);
+
 						}
 
-			ostringstream os;
-			os << node->name <<"=" << node->getWeight();
-			string title = os.str();
-			Rectangle titleRect;
-			if( node->children.empty() )
-				{
-				titleRect = node->bounds.inset(0.9);
-				}
-			else
-				{
-				titleRect = node->bounds.inset(0.9);
-				}
 
-			double theight= 14.0;
-			double twidth = title.length()*theight;
-			while(twidth> titleRect.getWidth() || theight > titleRect.getHeight()) {
-				theight*=0.99;
-				twidth*=0.99;
-				}
-			titleRect.x= titleRect.x + (titleRect.getWidth()-twidth)/2.0;
-			titleRect.y= titleRect.y + (titleRect.getHeight()-theight)/2.0;
-			titleRect.width=twidth;
-			titleRect.height=theight;
-
-			Hershey hershey;
-
-			hershey.paint(cr,title.c_str(),titleRect.x,titleRect.y,titleRect.width,titleRect.height);
+			::xmlTextWriterEndElement(writer);
 			}
-#endif
+
 		
 		virtual int main(int argc, char** argv) {
 			int optind = parseOptions(argc,argv);
@@ -414,6 +379,7 @@ class TreePackApp: public TreePackBase
 
 int main(int argc,char** argv)
 	{
+	LIBXML_TEST_VERSION
 	TreePackApp app;
 	return app.main(argc,argv);
 	}

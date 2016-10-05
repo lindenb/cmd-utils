@@ -1,0 +1,11 @@
+<cmd name="ColsMd5">
+
+
+<options>
+	<option name="delimiter" opt="d" longopt="delim" default="\t" type="char"></option>
+	<option name="columns" opt="f" longopt="column"  type="string-list"><!-- list, because order of columns matters for column md5 -->
+	</option>
+</options>
+
+
+</cmd>

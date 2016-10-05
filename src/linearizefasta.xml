@@ -1,0 +1,14 @@
+<cmd name="LinearizeFasta">
+
+
+<options>
+	<option name="delimiter" opt="d" longopt="delim" default="\t" type="char">
+		<description>Output Delimiter</description>
+	</option>
+	<option name="keepgt" opt="k" longopt="keepgt"  type="bool">
+		<description>Keep '>' symbol</description>
+	</option>
+</options>
+
+
+</cmd>

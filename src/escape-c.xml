@@ -1,0 +1,14 @@
+<cmd name="EscapeC">
+
+
+<options>
+	<option name="prefix" opt="p" longopt="prefix" default="" type="string">
+		<description>insert this string before each line</description>
+	</option>
+	<option name="suffix" opt="s" longopt="suffix" default="" type="string">
+		<description>insert this string after each line</description>
+	</option>
+</options>
+
+
+</cmd>

@@ -10,6 +10,10 @@ public:
 	bool ignore_trailing;
 	StringSplitter():delim("\t"),ignore_trailing(true) {
 		}
+	StringSplitter(char c):delim(),ignore_trailing(true) {
+		delim += c;
+		}
+	
 	
 	StringSplitter& set_delimiter(std::string s)
 		{

@@ -10,15 +10,18 @@ define has_lib
 endef
 
 
+# 1 name
+# 2 clags
+# 3 libs
 define compile0
 
 $(1) : $$(addprefix $(1).,cpp xml)  xml2h.xsl preproc.xsl config.h
 	xsltproc preproc.xsl $$(filter %.xml,$$^) | xsltproc xml2h.xsl -  > $$(addsuffix .tab.h,$$(basename $$<))
-	$$(CC) -o $$@ $$(CCFLAGS) $$< $(2)
+	$$(CC) $(2) -o $$@ $$(CCFLAGS) $$< $(3)
 
 endef
 
-APPS0 =  tab2spaces groupby table2yxv cutbyname yxv2table math-sum
+APPS0 = colsmd5 linearizefasta tab2spaces groupby table2yxv cutbyname yxv2table math-sum
 APPS = $(APPS0) treepack
 
 all:  $(APPS)
@@ -30,8 +33,8 @@ config.h :
 	echo '#endif' >> $@
 	
 
-$(eval $(foreach A,${APPS0},$(call compile0,${A},)))
-$(eval $(call compile0,treepack,-lcairo))
+$(eval $(foreach A,${APPS0},$(call compile0,${A},,)))
+$(eval $(call compile0,treepack,`xml2-config --cflags`,`xml2-config --libs`))
 
 
 z:	$(CC) $(CCFLAGS) test.cpp
