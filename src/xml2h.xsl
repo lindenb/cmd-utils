@@ -98,55 +98,59 @@ class <xsl:value-of select="@name"/>Base : public AbstractApplication
 				<xsl:otherwise><xsl:message terminate="yes">undefined type</xsl:message></xsl:otherwise>
 			</xsl:choose>
 		</xsl:for-each>
-		<xsl:value-of select="@name"/>Base():<xsl:for-each select="options/option">
-			<xsl:if test="position()&gt;1">,</xsl:if>
-			<xsl:value-of select="@name"/>
-			<xsl:text>(</xsl:text>
-			<xsl:choose>
-				<xsl:when test="@type = 'bool'">false</xsl:when>
-				<xsl:when test="@type = 'string-list'"></xsl:when>
-				<xsl:when test="@type = 'string-set'"></xsl:when>
-				<xsl:when test="@type = 'enum-set'"></xsl:when>
-				<xsl:when test="@type = 'enum'">
-					<xsl:choose>
-						<xsl:when test="@default">E_<xsl:value-of select="@name"/>_<xsl:value-of select="@default"/></xsl:when>
-						<xsl:otherwise>-1</xsl:otherwise>
-					</xsl:choose>
-				</xsl:when>
-				<xsl:when test="@type = 'char*'">
-					<xsl:choose>
-						<xsl:when test="@default"><xsl:message terminate="yes">char* cannot have a default value</xsl:message></xsl:when>
-						<xsl:otherwise>NULL</xsl:otherwise>
-					</xsl:choose>
-				</xsl:when>
-				<xsl:when test="@type = 'string'">
-					<xsl:choose>
-						<xsl:when test="@default">"<xsl:value-of select="@default"/>"</xsl:when>
-						<xsl:otherwise>""</xsl:otherwise>
-					</xsl:choose>
-				</xsl:when>
-				<xsl:when test="@type = 'char'">
-					<xsl:choose>
-						<xsl:when test="@default">'<xsl:value-of select="@default"/>'</xsl:when>
-						<xsl:otherwise>'\0'</xsl:otherwise>
-					</xsl:choose>
-				</xsl:when>
-				<xsl:when test="@type = 'int'">
-					<xsl:choose>
-						<xsl:when test="@default"><xsl:value-of select="@default"/></xsl:when>
-						<xsl:otherwise>0</xsl:otherwise>
-					</xsl:choose>
-				</xsl:when>
-				<xsl:when test="@type = 'double'">
-					<xsl:choose>
-						<xsl:when test="@default"><xsl:value-of select="@default"/></xsl:when>
-						<xsl:otherwise>0.0</xsl:otherwise>
-					</xsl:choose>
-				</xsl:when>
-				<xsl:otherwise><xsl:message terminate="yes">undefined type</xsl:message></xsl:otherwise>
-			</xsl:choose>
-			<xsl:text>)</xsl:text>
-			</xsl:for-each> {
+		<xsl:value-of select="@name"/>Base()
+			<xsl:if test="options/option">
+			<xsl:text>:</xsl:text>
+				<xsl:for-each select="options/option">
+				<xsl:if test="position()&gt;1">,</xsl:if>
+				<xsl:value-of select="@name"/>
+				<xsl:text>(</xsl:text>
+				<xsl:choose>
+					<xsl:when test="@type = 'bool'">false</xsl:when>
+					<xsl:when test="@type = 'string-list'"></xsl:when>
+					<xsl:when test="@type = 'string-set'"></xsl:when>
+					<xsl:when test="@type = 'enum-set'"></xsl:when>
+					<xsl:when test="@type = 'enum'">
+						<xsl:choose>
+							<xsl:when test="@default">E_<xsl:value-of select="@name"/>_<xsl:value-of select="@default"/></xsl:when>
+							<xsl:otherwise>-1</xsl:otherwise>
+						</xsl:choose>
+					</xsl:when>
+					<xsl:when test="@type = 'char*'">
+						<xsl:choose>
+							<xsl:when test="@default"><xsl:message terminate="yes">char* cannot have a default value</xsl:message></xsl:when>
+							<xsl:otherwise>NULL</xsl:otherwise>
+						</xsl:choose>
+					</xsl:when>
+					<xsl:when test="@type = 'string'">
+						<xsl:choose>
+							<xsl:when test="@default">"<xsl:value-of select="@default"/>"</xsl:when>
+							<xsl:otherwise>""</xsl:otherwise>
+						</xsl:choose>
+					</xsl:when>
+					<xsl:when test="@type = 'char'">
+						<xsl:choose>
+							<xsl:when test="@default">'<xsl:value-of select="@default"/>'</xsl:when>
+							<xsl:otherwise>'\0'</xsl:otherwise>
+						</xsl:choose>
+					</xsl:when>
+					<xsl:when test="@type = 'int'">
+						<xsl:choose>
+							<xsl:when test="@default"><xsl:value-of select="@default"/></xsl:when>
+							<xsl:otherwise>0</xsl:otherwise>
+						</xsl:choose>
+					</xsl:when>
+					<xsl:when test="@type = 'double'">
+						<xsl:choose>
+							<xsl:when test="@default"><xsl:value-of select="@default"/></xsl:when>
+							<xsl:otherwise>0.0</xsl:otherwise>
+						</xsl:choose>
+					</xsl:when>
+					<xsl:otherwise><xsl:message terminate="yes">undefined type</xsl:message></xsl:otherwise>
+				</xsl:choose>
+				<xsl:text>)</xsl:text>
+				</xsl:for-each>
+			</xsl:if> {
 
 		}
 	virtual ~<xsl:value-of select="@name"/>Base() {

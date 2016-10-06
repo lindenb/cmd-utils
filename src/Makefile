@@ -21,7 +21,7 @@ $(1) : $$(addprefix $(1).,cpp xml)  xml2h.xsl preproc.xsl config.h
 
 endef
 
-APPS0 = colsmd5 linearizefasta tab2spaces groupby table2yxv cutbyname yxv2table math-sum
+APPS0 = escape-xml escape-c colsmd5 linearizefasta tab2spaces groupby table2yxv cutbyname yxv2table math-sum
 APPS = $(APPS0) treepack
 
 all:  $(APPS)
