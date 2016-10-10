@@ -1,0 +1,11 @@
+<cmd name="MathMedian">
+
+
+<options>
+	<option name="ignore_errors" opt="w" longopt="w"  type="bool">
+		<description>Treat errors are warning</description>
+	</option>
+</options>
+
+
+</cmd>
