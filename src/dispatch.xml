@@ -1,0 +1,14 @@
+<cmd name="Dispatch">
+
+
+<options>
+	<option name="splitcount" opt="n" longopt="number" default="-1" type="int">
+		<description>number of chuncks</description>
+	</option>
+	<option name="outfilename" opt="o" longopt="out"  type="char*">
+		<description>Base output fname. MUST contains XXXXXX </description>
+	</option>
+</options>
+
+
+</cmd>
