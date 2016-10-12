@@ -1,0 +1,17 @@
+<cmd name="HeadTail">
+
+
+<options>
+	<option name="headcount" opt="n" longopt="head" default="10" type="long">
+		<description>head number</description>
+	</option>
+	<option name="tailcount" opt="t" longopt="tail"  default="10" type="long">
+		<description>tail number</description>
+	</option>
+	<option name="group_separator" opt="d" longopt="separator"  type="string" default="------">
+		<description>group separator. empty=no group</description>
+	</option>
+</options>
+
+
+</cmd>

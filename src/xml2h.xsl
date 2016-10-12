@@ -89,6 +89,8 @@ class <xsl:value-of select="@name"/>Base : public AbstractApplication
 				</xsl:when>
 				<xsl:when test="@type = 'int'">int <xsl:value-of select="@name"/>;
 				</xsl:when>
+				<xsl:when test="@type = 'long'">int <xsl:value-of select="@name"/>;
+				</xsl:when>
 				<xsl:when test="@type = 'double'">double <xsl:value-of select="@name"/>;
 				</xsl:when>
 				<xsl:when test="@type = 'enum'">int <xsl:value-of select="@name"/>;
@@ -138,6 +140,12 @@ class <xsl:value-of select="@name"/>Base : public AbstractApplication
 						<xsl:choose>
 							<xsl:when test="@default"><xsl:value-of select="@default"/></xsl:when>
 							<xsl:otherwise>0</xsl:otherwise>
+						</xsl:choose>
+					</xsl:when>
+					<xsl:when test="@type = 'long'">
+						<xsl:choose>
+							<xsl:when test="@default"><xsl:value-of select="@default"/></xsl:when>
+							<xsl:otherwise>0L</xsl:otherwise>
 						</xsl:choose>
 					</xsl:when>
 					<xsl:when test="@type = 'double'">
@@ -279,8 +287,8 @@ class <xsl:value-of select="@name"/>Base : public AbstractApplication
 					<xsl:when test="@type = 'long'"> {
 					char* endptr = 0;
 					this-&gt;<xsl:value-of select="@name"/>  = strtol(optarg,&amp;endptr,10);
-					if(*endptr != '\0' || endptr == str) {
-						td::cerr &lt;&lt; "Option <xsl:apply-templates select="." mode="label"/> expects a long but got \"" &lt;&lt;  optarg &lt;&lt; "\"." &lt;&lt; std::endl;
+					if(*endptr != '\0' || endptr == optarg) {
+						std::cerr &lt;&lt; "Option <xsl:apply-templates select="." mode="label"/> expects a long but got \"" &lt;&lt;  optarg &lt;&lt; "\"." &lt;&lt; std::endl;
 						std::exit(EXIT_FAILURE); 
 						}
 					break;
@@ -289,7 +297,7 @@ class <xsl:value-of select="@name"/>Base : public AbstractApplication
 					char* endptr = 0;
 					this-&gt;<xsl:value-of select="@name"/>  = strtod(optarg,&amp;endptr);
 					if(*endptr != '\0' || endptr == str) {
-						td::cerr &lt;&lt; "Option <xsl:apply-templates select="." mode="label"/> expects a double but got \"" &lt;&lt;  optarg &lt;&lt; "\"." &lt;&lt; std::endl;
+						std::cerr &lt;&lt; "Option <xsl:apply-templates select="." mode="label"/> expects a double but got \"" &lt;&lt;  optarg &lt;&lt; "\"." &lt;&lt; std::endl;
 						std::exit(EXIT_FAILURE); 
 						}
 					break;
@@ -298,7 +306,7 @@ class <xsl:value-of select="@name"/>Base : public AbstractApplication
 					char* endptr = 0;
 					this-&gt;<xsl:value-of select="@name"/>  = strtof(optarg,&amp;endptr);
 					if(*endptr != '\0' || endptr == str) {
-						td::cerr &lt;&lt; "Option <xsl:apply-templates select="." mode="label"/> expects a float but got \"" &lt;&lt;  optarg &lt;&lt; "\"." &lt;&lt; std::endl;
+						std::cerr &lt;&lt; "Option <xsl:apply-templates select="." mode="label"/> expects a float but got \"" &lt;&lt;  optarg &lt;&lt; "\"." &lt;&lt; std::endl;
 						std::exit(EXIT_FAILURE); 
 						}
 					break;
