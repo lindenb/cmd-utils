@@ -1,0 +1,14 @@
+<cmd name="WordCount">
+
+
+<options>
+	<option name="ignorecase" opt="i" longopt="ignorecase" type="bool">
+		<description>Ignore case</description>
+	</option>
+	<option name="delimiter" opt="d" longopt="delimiter" type="char" default="\t">
+		<description>output delimiter</description>
+	</option>
+</options>
+
+
+</cmd>
