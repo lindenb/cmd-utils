@@ -1,4 +1,5 @@
 #include <map>
+#include <cmath>
 #include "wordcount.tab.h"
 
 
@@ -51,15 +52,34 @@ public:
 	virtual int main(int argc,char** argv)
 		{
 		int optind = parseOptions(argc,argv);
+		if( histwidth<1) THROW("Bad histogram width");
 		ci_less cmp(this->ignorecase);
 		w2c = new std::map<std::string,unsigned long,ci_less>(cmp);
 		manyOrStdin(optind,argc,argv);
+		
+		double sum=0.0;
+		if( this->histogram )
+			{
+			for(std::map<std::string,unsigned long,ci_less>::iterator r= w2c->begin();
+				r!=w2c->end();
+				++r)
+				{
+				sum+=r->second;
+				}
+			}
 		
 		for(std::map<std::string,unsigned long,ci_less>::iterator r= w2c->begin();
 			r!=w2c->end();
 			++r)
 			{
-			cout << (r->second) << this->delimiter << (r->first) << endl;
+			cout << (r->second) << this->delimiter ;
+			if( this->histogram )
+				{
+				int n = ceil((r->second/sum)*(histwidth));
+				for(int i=0;i< histwidth;++i) cout << (i<n?"#":" ");
+				cout << this->delimiter ;
+				}
+			cout << (r->first) << endl;
 			}
 		delete w2c;
 		return EXIT_SUCCESS;

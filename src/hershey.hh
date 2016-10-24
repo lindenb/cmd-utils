@@ -175,9 +175,54 @@ class Hershey
 					array.push_back(pathOp);
 					}
 				}
-			
-		
+			/*
+		void line(int x0, int y0, int x1, int y1) {
+			  int dx = std::abs(x1-x0), sx = x0<x1 ? 1 : -1;
+			  int dy = std::abs(y1-y0), sy = y0<y1 ? 1 : -1; 
+			  int err = (dx>dy ? dx : -dy)/2, e2;
+			 
+			  for(;;){
+				setPixel(x0,y0);
+				if (x0==x1 && y0==y1) break;
+				e2 = err;
+				if (e2 >-dx) { err -= dy; x0 += sx; }
+				if (e2 < dy) { err += dx; y0 += sy; }
+			  }
+			}*/
 	public:
+		/*
+		void term(
+			std::ostream& out,
+			int width,
+			int height
+			)
+			{
+			if(s==NULL || width<=0 || height<=0) return;
+			size_t s_length=strlen(s);
+			if(s_length==0) return;
+			int x=0,y=0,prev_x=0,prev_y=0;
+			size_t i=0,n;
+			int dx=(int)(width/s_length);
+			if(dx==0) return;
+			for(i=0;i < s_length;++i)
+				{
+				charToPathOp(s[i]);
+				for(n=0;n< array.size();++n)
+					{
+					Operator&  p2= array[n];
+					int x2= x+ (int)((p2.x/this->scalex)*dx + dx*i +dx/2.0);
+					int y2= y+ (int)((p2.y/this->scaley)*height +height/2.0) ;
+			
+					if(p2.op == LINETO)
+						{
+						line(x2,y2,prev_x,prev_y);
+						out << x2 << " " << y2 << " lineto ";
+						}
+					prev_x = x2;
+					prev_y = y2;
+					}
+				}
+			}*/
 
 		void postscript(
 			std::ostream& out,
@@ -211,7 +256,6 @@ class Hershey
 						out << x2 << " " << y2 << " moveto ";
 						}
 					}
-		
 				}	
 			
 			}

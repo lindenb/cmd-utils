@@ -1,0 +1,18 @@
+<cmd name="Combination">
+
+
+<options>
+	<option name="ltflag" opt="T" longopt="lt" type="bool">
+		<description>Only print data if string(file N) &lt; string(file N+1)</description>
+	</option>
+	<option name="leflag" opt="E" longopt="le" type="bool">
+		<description>Only print data if string(file N) &lt;= string(file N+1)</description>
+	</option>
+	<option name="delimiter" opt="d" longopt="delimiter" type="char" default="\t">
+		<description>output delimiter</description>
+	</option>
+
+</options>
+
+
+</cmd>

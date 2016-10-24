@@ -21,7 +21,7 @@ $(1) : $$(addprefix $(1).,cpp xml)  xml2h.xsl preproc.xsl config.h
 
 endef
 
-APPS0 = wordcount headtail dispatch escape-xml escape-c colsmd5 linearizefasta tab2spaces groupby table2yxv cutbyname yxv2table math-sum math-mean math-median
+APPS0 = combination wordcount headtail dispatch escape-xml escape-c colsmd5 linearizefasta tab2spaces groupby table2yxv cutbyname yxv2table math-sum math-mean math-median
 APPS = $(APPS0) treepack
 
 all:  $(APPS)
