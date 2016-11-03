@@ -11,13 +11,41 @@ endef
 
 
 # 1 name
-# 2 clags
-# 3 libs
+# 2 other
+# 3 clags
+# 4 libs
 define compile0
 
-$(1) : $$(addprefix $(1).,cpp xml)  xml2h.xsl preproc.xsl config.h
+$(1) : $$(addprefix $(1).,cpp xml)  xml2h.xsl preproc.xsl config.h $(2)
 	xsltproc preproc.xsl $$(filter %.xml,$$^) | xsltproc xml2h.xsl -  > $$(addsuffix .tab.h,$$(basename $$<))
-	$$(CC) $(2) -o $$@ $$(CCFLAGS) $$< $(3)
+	$$(CC) $(3) -o $$@ $$(CCFLAGS) $(2) $$< $$(filter %.o,$$^) $(4)
+
+endef
+
+# 1 name
+# 2 clags
+define lexyacc
+
+$(1).bison.o : $(1).bison.cc  $(1).bison.hh $(1).flex.h  $(1).scanner.hh
+	$$(CC) $(2) -c -o $$@ $$< 
+
+$(1).flex.o : $(1).flex.c $(1).flex.h  $(1).bison.hh $(1).flex-m4.hh
+	$$(CC) $(2) -c -o $$@ $$< 
+
+$(1).flex.c : $(1).flex.h
+	touch -c $$@
+
+$(1).flex.h : $(1).l
+	flex --reentrant -P $(1)  --header-file=$$@ -o $(1).flex.c $$<
+
+$(1).bison.cc : $(1).bison.hh
+	touch -c $$@
+
+$(1).bison.hh : $(1).y
+	bison --feature=all --locations -Wall --defines=$$@ --output=$(1).bison.cc -b $(1) -p $(1) -L c++ $$<
+
+$(1).flex-m4.hh : flex.m4
+	sed 's/TOOL/$(1)/g' $$<  > $$@
 
 endef
 
@@ -33,8 +61,11 @@ config.h :
 	echo '#endif' >> $@
 	
 
-$(eval $(foreach A,${APPS0},$(call compile0,${A},,)))
-$(eval $(call compile0,treepack,`xml2-config --cflags`,`xml2-config --libs`))
+$(eval $(foreach A,${APPS0},$(call compile0,${A},,,)))
+$(eval $(call compile0,treepack,,`xml2-config --cflags`,`xml2-config --libs`))
+
+
+$(eval $(call lexyacc,json_array_foreach,))
 
 
 z:	$(CC) $(CCFLAGS) test.cpp
