@@ -50,7 +50,7 @@ $(1).m4.hh : parser.m4
 endef
 
 APPS0 = combination wordcount headtail dispatch escape-xml escape-c colsmd5 linearizefasta tab2spaces groupby table2yxv cutbyname yxv2table math-sum math-mean math-median
-APPS = $(APPS0) treepack json_array_foreach
+APPS = $(APPS0) treepack json_array_foreach json_object_foreach
 
 all:  $(APPS)
 
@@ -65,12 +65,24 @@ $(eval $(foreach A,${APPS0},$(call compile0,${A},,,)))
 $(eval $(call compile0,treepack,,`xml2-config --cflags`,`xml2-config --libs`))
 
 
-json_array_foreach: $(addprefix json_array_foreach, .l .y)
+json_array_foreach: $(addprefix json_array_foreach, .l .y .xml .cpp)
 	flex --header-file=$(addsuffix .flex.h,$@) -o $(addsuffix .flex.c,$@) $(filter %.l,$^)
 	bison --locations --defines=$(addsuffix .bison.h,$@) --output=$(addsuffix .bison.c,$@)  $(filter %.y,$^)
 	$(CC) -c $(CCFLAGS) -o $(addsuffix .flex.o,$@) $(addsuffix .flex.c,$@)
-	$(CC) -c $(CCFLAGS) -o $(addsuffix .bison.o,$@) $(addsuffix .bison.c,$@)	
-
+	$(CC) -c $(CCFLAGS) -o $(addsuffix .bison.o,$@) $(addsuffix .bison.c,$@)
+	xsltproc preproc.xsl $(filter %.xml,$^) | xsltproc xml2h.xsl -  > $(addsuffix .tab.h,$@)
+	$(CC) $(CCFLAGS) -o $@  $(addprefix $@,.cpp .flex.o .bison.o)
+		
+json_object_foreach: $(addprefix json_object_foreach, .y .xml .cpp) json_array_foreach.l
+	sed 's/json_array_foreach/json_object_foreach/g' json_array_foreach.l > json_object_foreach.l
+	flex --header-file=$(addsuffix .flex.h,$@) -o $(addsuffix .flex.c,$@) json_object_foreach.l
+	bison --locations --defines=$(addsuffix .bison.h,$@) --output=$(addsuffix .bison.c,$@)  $(filter %.y,$^)
+	$(CC) -c $(CCFLAGS) -o $(addsuffix .flex.o,$@) $(addsuffix .flex.c,$@)
+	$(CC) -c $(CCFLAGS) -o $(addsuffix .bison.o,$@) $(addsuffix .bison.c,$@)
+	xsltproc preproc.xsl $(filter %.xml,$^) | xsltproc xml2h.xsl -  > $(addsuffix .tab.h,$@)
+	$(CC) $(CCFLAGS) -o $@  $(addprefix $@,.cpp .flex.o .bison.o)
+	rm json_object_foreach.l
+		
 
 z:	$(CC) $(CCFLAGS) test.cpp
 	./a.out "[]"  " [ ] "  " {}" '[12332]' '[false]' '[null]' '["azd"]' '["a",null,09]' '{"a":1,"b":null,"c":9872}' \

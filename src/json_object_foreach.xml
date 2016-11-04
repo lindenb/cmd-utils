@@ -1,0 +1,14 @@
+<cmd name="JsonObjectForEach">
+
+
+<options>
+	<option name="delimiter" opt="d" longopt="delimiter" type="char" default="\t">
+		<description>output delimiter</description>
+	</option>
+	<option name="print_header" opt="H" longopt="header" type="bool" >
+		<description>print header</description>
+	</option>
+</options>
+
+
+</cmd>

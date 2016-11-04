@@ -66,7 +66,28 @@ class AbstractApplication
 					}
 				}
 			}
-
+		
+		virtual void fOneOrStdin(int optind,int argc,char** argv)
+			{
+			if(optind==argc)
+				{
+				processFILE("<STDIN>",stdin);
+				}
+			else if(optind+1==argc)
+				{
+				std::FILE* f = std::fopen(argv[optind],"r");
+				if(f==NULL) {
+					THROW("Cannot open \"" << argv[optind] << "\": " << std::strerror(errno) << ".");
+					}
+				processFILE(argv[optind],f);
+				std::fclose(f);
+				}
+			else
+				{
+				THROW("Illegal Number of arguments.");
+				}
+			}
+		
 		virtual void fManyOrStdin(int optind,int argc,char** argv)
 			{
 			if(optind==argc)
@@ -76,7 +97,7 @@ class AbstractApplication
 			else {
 				while(optind < argc)
 					{
-					FILE* f = std::fopen(argv[optind],"r");
+					std::FILE* f = std::fopen(argv[optind],"r");
 					if(f==NULL) {
 						THROW("Cannot open \"" << argv[optind] << "\": " << std::strerror(errno) << ".");
 						}
