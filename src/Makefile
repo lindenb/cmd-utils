@@ -50,7 +50,7 @@ $(1).m4.hh : parser.m4
 endef
 
 APPS0 = combination wordcount headtail dispatch escape-xml escape-c colsmd5 linearizefasta tab2spaces groupby table2yxv cutbyname yxv2table math-sum math-mean math-median
-APPS = $(APPS0) treepack
+APPS = $(APPS0) treepack json_array_foreach
 
 all:  $(APPS)
 
@@ -65,7 +65,11 @@ $(eval $(foreach A,${APPS0},$(call compile0,${A},,,)))
 $(eval $(call compile0,treepack,,`xml2-config --cflags`,`xml2-config --libs`))
 
 
-$(eval $(call lexyacc,json_array_foreach,))
+json_array_foreach: $(addprefix json_array_foreach, .l .y)
+	flex --header-file=$(addsuffix .flex.h,$@) -o $(addsuffix .flex.c,$@) $(filter %.l,$^)
+	bison --locations --defines=$(addsuffix .bison.h,$@) --output=$(addsuffix .bison.c,$@)  $(filter %.y,$^)
+	$(CC) -c $(CCFLAGS) -o $(addsuffix .flex.o,$@) $(addsuffix .flex.c,$@)
+	$(CC) -c $(CCFLAGS) -o $(addsuffix .bison.o,$@) $(addsuffix .bison.c,$@)	
 
 
 z:	$(CC) $(CCFLAGS) test.cpp
