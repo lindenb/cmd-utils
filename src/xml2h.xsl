@@ -270,6 +270,9 @@ class <xsl:value-of select="@name"/>Base : public AbstractApplication
 						}
 					else if(std::strcmp(optarg,"\\n")==0) {
 						this-&gt;<xsl:value-of select="@name"/> = '\n';
+						}
+					else if(std::strcmp(optarg,"\\0")==0) {
+						this-&gt;<xsl:value-of select="@name"/> = '\0';
 						} 
 					else if(std::strlen(optarg)!=1)
 						{

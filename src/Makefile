@@ -26,10 +26,10 @@ endef
 # 2 clags
 define lexyacc
 
-$(1).bison.o : $(1).bison.cc  $(1).bison.hh $(1).flex.h  $(1).scanner.hh
+$(1).bison.o : $(1).bison.c  $(1).bison.hh $(1).flex.h $(1).m4.hh
 	$$(CC) $(2) -c -o $$@ $$< 
 
-$(1).flex.o : $(1).flex.c $(1).flex.h  $(1).bison.hh $(1).flex-m4.hh
+$(1).flex.o : $(1).flex.c $(1).flex.h  $(1).bison.h $(1).m4.hh
 	$$(CC) $(2) -c -o $$@ $$< 
 
 $(1).flex.c : $(1).flex.h
@@ -38,14 +38,14 @@ $(1).flex.c : $(1).flex.h
 $(1).flex.h : $(1).l
 	flex --reentrant -P $(1)  --header-file=$$@ -o $(1).flex.c $$<
 
-$(1).bison.cc : $(1).bison.hh
+$(1).bison.c : $(1).bison.h
 	touch -c $$@
 
-$(1).bison.hh : $(1).y
-	bison --feature=all --locations -Wall --defines=$$@ --output=$(1).bison.cc -b $(1) -p $(1) -L c++ $$<
+$(1).bison.h : $(1).y
+	bison --locations -Wall --defines=$$@ --output=$(1).bison.c -b $(1) -p $(1) $$<
 
-$(1).flex-m4.hh : flex.m4
-	sed 's/TOOL/$(1)/g' $$<  > $$@
+$(1).m4.hh : parser.m4
+	m4 -DTOOL=$(1) $$<  > $$@
 
 endef
 

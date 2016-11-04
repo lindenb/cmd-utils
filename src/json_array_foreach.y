@@ -1,16 +1,21 @@
 %code {
 
 	
-	#include "json_array_foreach.flex.hh"
-	#include "json_array_foreach.scanner.hh"
+	#include "json_array_foreach.flex.h"
+	#include "json_array_foreach.m4.hh"
+	#include "json_array_foreach.bison.h"
+
+	
+	
 	#undef yylex
 	#define yylex lexer.lex
 }
 
-%define parser_class_name {json_array_foreach_parser}
-%parse-param { json_array_foreach_scanner& lexer }
 
-
+%pure-parser
+%locations 
+%parse-param{json_array_foreachParser* parser}
+%lex-param{void* handle_to_the_scanner}
 
 %token ARRAY_OPEN
 %token ARRAY_CLOSE
