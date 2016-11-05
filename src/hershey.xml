@@ -1,0 +1,17 @@
+<cmd name="HersheyBanner">
+
+
+<options>
+	<option name="term_width" opt="W" longopt="width" default="-1" type="int">
+		<description>Terminal width : -1 = default, use $COLUMNS</description>
+	</option>
+	<option name="term_height" opt="H" longopt="height" default="-1" type="int">
+		<description>Terminal height : -1 = default:10</description>
+	</option>
+	<option name="fillchar" opt="c" longopt="fill" default="#" type="char">
+		<description>fill char</description>
+	</option>
+</options>
+
+
+</cmd>
