@@ -35,7 +35,7 @@ input: object;
 array: ARRAY_OPEN  ARRAY_CLOSE { cout << "[]"; }
 	| ARRAY_OPEN {cout << "[";} array_items ARRAY_CLOSE {cout << "]";} 
 	;
-array_items: any COMMA {cout << ",";} array_items | any ;
+array_items: array_items COMMA {cout << ",";} any | any ;
 object: OBJECT_OPEN OBJECT_CLOSE
 	{
 	if(json_depth!=0) cout << "{}";

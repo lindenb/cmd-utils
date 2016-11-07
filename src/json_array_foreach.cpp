@@ -4,12 +4,14 @@
 
 using namespace std;
 
+extern int json_array_foreachparse();
+
 class JsonArrayForEach: public JsonArrayForEachBase {
 public:
 
 	virtual void processFILE(const char* f,std::FILE* in) {
-		yyin = in;
-		::yyparse();
+		json_array_foreachin = in;
+		json_array_foreachparse();
 		}
 	
 	virtual int main(int argc,char** argv)

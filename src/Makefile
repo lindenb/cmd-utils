@@ -66,8 +66,8 @@ $(eval $(call compile0,treepack,,`xml2-config --cflags`,`xml2-config --libs`))
 
 
 json_array_foreach: $(addprefix json_array_foreach, .l .y .xml .cpp)
-	flex --header-file=$(addsuffix .flex.h,$@) -o $(addsuffix .flex.c,$@) $(filter %.l,$^)
-	bison --locations --defines=$(addsuffix .bison.h,$@) --output=$(addsuffix .bison.c,$@)  $(filter %.y,$^)
+	flex -P $@ --header-file=$(addsuffix .flex.h,$@) -o $(addsuffix .flex.c,$@) $(filter %.l,$^)
+	bison -p $@ --locations --defines=$(addsuffix .bison.h,$@) --output=$(addsuffix .bison.c,$@)  $(filter %.y,$^)
 	$(CC) -c $(CCFLAGS) -o $(addsuffix .flex.o,$@) $(addsuffix .flex.c,$@)
 	$(CC) -c $(CCFLAGS) -o $(addsuffix .bison.o,$@) $(addsuffix .bison.c,$@)
 	xsltproc preproc.xsl $(filter %.xml,$^) | xsltproc xml2h.xsl -  > $(addsuffix .tab.h,$@)
@@ -75,14 +75,20 @@ json_array_foreach: $(addprefix json_array_foreach, .l .y .xml .cpp)
 		
 json_object_foreach: $(addprefix json_object_foreach, .y .xml .cpp) json_array_foreach.l
 	sed 's/json_array_foreach/json_object_foreach/g' json_array_foreach.l > json_object_foreach.l
-	flex --header-file=$(addsuffix .flex.h,$@) -o $(addsuffix .flex.c,$@) json_object_foreach.l
-	bison --locations --defines=$(addsuffix .bison.h,$@) --output=$(addsuffix .bison.c,$@)  $(filter %.y,$^)
+	flex -P $@ --header-file=$(addsuffix .flex.h,$@) -o $(addsuffix .flex.c,$@) json_object_foreach.l
+	bison  -p $@ --locations --defines=$(addsuffix .bison.h,$@) --output=$(addsuffix .bison.c,$@)  $(filter %.y,$^)
 	$(CC) -c $(CCFLAGS) -o $(addsuffix .flex.o,$@) $(addsuffix .flex.c,$@)
 	$(CC) -c $(CCFLAGS) -o $(addsuffix .bison.o,$@) $(addsuffix .bison.c,$@)
 	xsltproc preproc.xsl $(filter %.xml,$^) | xsltproc xml2h.xsl -  > $(addsuffix .tab.h,$@)
 	$(CC) $(CCFLAGS) -o $@  $(addprefix $@,.cpp .flex.o .bison.o)
 	rm json_object_foreach.l
-		
+
+json_tree.a : 	$(addprefix json_tree, .l .y) json_node.hh
+	flex -P $(basename $@) --header-file=$(addsuffix .flex.h,$(basename $@)) -o $(addsuffix .flex.c,$(basename $@))  $(addsuffix .l,$(basename $@))
+	bison  -p $(basename $@) --locations --defines=$(addsuffix .bison.h,$(basename $@)) --output=$(addsuffix .bison.c,$(basename $@))  $(filter %.y,$^)
+	$(CC) -c $(CCFLAGS) -o $(addsuffix .flex.o,$(basename $@)) $(addsuffix .flex.c,$(basename $@))
+	$(CC) -c $(CCFLAGS) -o $(addsuffix .bison.o,$(basename $@)) $(addsuffix .bison.c,$(basename $@))
+	ar rcs $@ $(addsuffix .flex.o,$(basename $@)) $(addsuffix .bison.o,$(basename $@))
 
 z:	$(CC) $(CCFLAGS) test.cpp
 	./a.out "[]"  " [ ] "  " {}" '[12332]' '[false]' '[null]' '["azd"]' '["a",null,09]' '{"a":1,"b":null,"c":9872}' \

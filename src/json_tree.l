@@ -1,12 +1,14 @@
 %{
 #include <string>
 #include "throw.hh"
-#include "json_array_foreach.bison.h"
+#include "json_node.hh"
+#include "json_tree.bison.h"
 
 using namespace std;
 
 
-
+static void unescape_json(char* s) {
+}
 
 %}
 
@@ -28,11 +30,12 @@ CHARS {CHAR}+
 DBL_QUOTE ["]
 %%
 {DBL_QUOTE}{DBL_QUOTE}|{DBL_QUOTE}{CHARS}{DBL_QUOTE} {
-	json_array_foreachlval.str=new string(yytext);
+	unescape_json(yytext);
+	json_treelval.str=  new string(yytext);
 	return PRIMITIVE_STRING;
 	}
 {NUMBER} {
-    json_array_foreachlval.str=new string(yytext);
+    json_treelval.str=  JsonElement::createNumber(yytext);
     return PRIMITIVE_NUMBER;
 	}
 \[ 	return  ARRAY_OPEN;
@@ -41,9 +44,9 @@ DBL_QUOTE ["]
 \} 	return  OBJECT_CLOSE;
 , 	return COMMA;
 \:	return COLON;
-true return PRIMITIVE_TRUE;
-false return PRIMITIVE_FALSE;
-null return PRIMITIVE_NULL;
+true return JsonElement::createTrue();
+false return JsonElement::createFalse();
+null return JsonElement::createNull();
 [ \t\n]+  ;
 .	{
 	THROW("unexpected char " << yytext << ".\n");

@@ -39,7 +39,7 @@ array: ARRAY_OPEN  ARRAY_CLOSE
 	}
 	| ARRAY_OPEN {if(json_depth!=0) {cout << "[";} json_depth++;} array_items ARRAY_CLOSE { json_depth--;if(json_depth==0) { cout << endl;} else {cout << "]";} }
 	;
-array_items: any COMMA {if(json_depth==1) {cout << endl;} else {cout << ",";}} array_items | any ;
+array_items:  array_items COMMA {if(json_depth==1) {cout << endl;} else {cout << ",";}} any | any ;
 object: OBJECT_OPEN OBJECT_CLOSE { cout << "{}";} | OBJECT_OPEN { cout << "{";} object_items OBJECT_CLOSE { cout << "}";};
 object_items: object_pair |  object_pair COMMA  { cout << ",";} object_items;
 object_pair: prim_string  COLON { cout << ":";} any;

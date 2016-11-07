@@ -4,6 +4,8 @@
 
 using namespace std;
 
+extern int json_object_foreachparse();
+
 class JsonObjectForEach: public JsonObjectForEachBase {
 public:
 
@@ -12,8 +14,8 @@ public:
 			{
 			cout << "#key" << this->delimiter << "value" << endl;
 			}
-		yyin = in;
-		::yyparse();
+		json_object_foreachin = in;
+		::json_object_foreachparse();
 		}
 	
 	virtual int main(int argc,char** argv)
