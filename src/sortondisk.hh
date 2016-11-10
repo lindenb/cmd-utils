@@ -14,6 +14,7 @@ class SortingCollection
 	{
 	private:
 		typedef T *ptr_type;
+		typedef const T *const_ptr_type;
 		class BuffFile
 			{
 			public:
@@ -38,14 +39,14 @@ class SortingCollection
 				TupleBinding() {}
 				virtual ~TupleBinding() {}
 				virtual SortingCollection<T>::ptr_type read(std::FILE* in)=0;
-				virtual void write(FILE* in,const SortingCollection<T>::ptr_type o)=0;
+				virtual void write(std::FILE* in,SortingCollection<T>::const_ptr_type o)=0;
 			};		
 		class Comparator
 			{
 			public:
 				Comparator() {}
 				virtual ~Comparator() {}
-				virtual bool lt(const SortingCollection<T>::ptr_type a,const SortingCollection<T>::ptr_type b) = 0;
+				virtual bool lt( SortingCollection<T>::const_ptr_type a, SortingCollection<T>::const_ptr_type b) = 0;
 			};
 		class Iterator
 			{
@@ -64,10 +65,11 @@ class SortingCollection
 			bf->filename.append(this->tmpdir);
 			bf->filename.append("/");
 			bf->filename.append("sorting.XXXXXX");
-			int fd = mkstemp((char*)bf->filename.c_str());
-			if( fd == -1)  THROW("Cannot open " << bf->filename);
-			bf->ios = fdopen(fd,"rb");
-			if( bf->ios == 0)  THROW("Cannot open "<< bf->filename);
+			int fd = ::mkstemp((char*)bf->filename.c_str());
+			std::cerr << "fd = "<< fd << std::endl;
+			if( fd == -1)  THROW("Cannot open " << bf->filename << " " << std::strerror(errno));
+			bf->ios = ::fdopen(fd,"wb");
+			if( bf->ios == 0)  THROW("Cannot open "<< bf->filename << " " << std::strerror(errno));
 			bf->nitems = 0UL;
 			bufffiles.push_back(bf);
 			return bf;
@@ -76,10 +78,10 @@ class SortingCollection
 		struct less_than_key
 			{
 			SortingCollection<T>* owner;
-			less_than_key(SortingCollection* owner) {
+			less_than_key(SortingCollection<T>* owner) {
 				this->owner = owner;
 				}
-			bool operator() (const T* a, const T*& b)
+			bool operator() (SortingCollection<T>::const_ptr_type a, SortingCollection<T>::const_ptr_type b)
 				{
 					return owner->comparator->lt(a,b);
 				}
@@ -94,13 +96,16 @@ class SortingCollection
 			
 			typename std::vector<ptr_type>::iterator r = buffer.begin();
 			while( r != buffer.end() ) {
-				binding->write(outBuffFile->ios,(*r));
+				ptr_type item = (*r);
+				binding->write(outBuffFile->ios,item);
 				outBuffFile->nitems++;
-				delete (*r);
+				delete item;
+				++r;
 				}
 			buffer.clear();
 			std::fflush(outBuffFile->ios);
 			std::fclose(outBuffFile->ios);
+			outBuffFile->ios=0;
 			}
 	
 	public:
@@ -131,13 +136,18 @@ class SortingCollection
 				++r)
 				{
 				BuffFile* bf=(*r);
+				std::cerr << "A" << std::endl;
 				if(bf->peeked != 0) delete bf->peeked;
 				bf->peeked=0;
-				if(bf->ios != 0) fclose(bf->ios);
+				std::cerr << "B" << std::endl;
+				if(bf->ios != 0) std::fclose(bf->ios);
 				bf->ios=0;
 				bf->curr_index = bf->nitems;
+					std::cerr << "C" << std::endl;
 				if(!bf->filename.empty()) std::remove(bf->filename.c_str());
 				}
+			std::cerr << "closed" << std::endl;
+				
 			}
 			
 		class IteratorImpl: public Iterator
@@ -148,17 +158,19 @@ class SortingCollection
 				virtual ~IteratorImpl() {
 					owner->close();
 					}
-				virtual T* next() {
+				virtual SortingCollection<T>::ptr_type next() {
 					T* best = 0;
-					typename std::vector<BuffFile*>::iterator rbest = owner->bufffiles.end();
-					for(typename std::vector<BuffFile*>::iterator r= owner->bufffiles.begin();
+					std::cerr << "next" << std::endl;
+					typename std::vector<SortingCollection<T>::BuffFile*>::iterator rbest = owner->bufffiles.end();
+					for(typename std::vector<SortingCollection<T>::BuffFile*>::iterator r= owner->bufffiles.begin();
 						r!=owner->bufffiles.end();
 						++r)
 						{
-						BuffFile* bf=(*r);
+						SortingCollection<T>::BuffFile* bf=(*r);
 						if( bf->peeked == 0)
 							{
 							if( bf->curr_index >= bf->nitems) continue;
+							std::cerr << "read " <<  bf->curr_index << "/" <<  bf->nitems << std::endl;
 							bf->peeked = owner->binding->read( bf->ios );
 							bf->curr_index++;
 							if ( bf->curr_index == bf->nitems ) {
@@ -177,6 +189,7 @@ class SortingCollection
 					if(best!=0) {
 						(*rbest)->peeked=0;
 						}
+					std::cerr << "return.next()" << std::endl;
 					return best;
 					}
 				virtual void close()
@@ -196,12 +209,13 @@ class SortingCollection
 				r!=bufffiles.end();
 				++r)
 				{
-				r->ios = std::fopen(r->filename.c_str(),"rb");
-				if( r->ios == NULL) {
+				std::cerr << "reopen " << (*r)->filename << std::endl;
+				(*r)->ios = std::fopen((*r)->filename.c_str(),"rb");
+				if( (*r)->ios == NULL) {
 					close();
-					THROW("canhttps://mail.google.com/mail/u/0/#inboxnot reopen tmp file");
+					THROW("cannot reopen tmp file");
 					}
-				r->curr_index = 0UL;
+				(*r)->curr_index = 0UL;
 				}
 			myiterator = new IteratorImpl(this);
 			return myiterator;
@@ -209,7 +223,10 @@ class SortingCollection
 		
 		
 		
-		SortingCollection():myiterator(0),max_buffer_size(100000UL) {
+		SortingCollection():max_buffer_size(100000UL),
+						done_adding_flag(false),
+						comparator(0),binding(0),
+						myiterator(0) {
 			char const *tmpfolder = std::getenv("TMPDIR");
 			tmpdir.assign(tmpfolder==0?".":tmpfolder);
 			}
@@ -224,7 +241,15 @@ class SortingCollection
 				delete bf;
 				}
 			if(myiterator!=0) delete myiterator;
-			
+			}
+		
+		void set_comparator(SortingCollection<T>::Comparator* c)
+			{
+			this->comparator = c;
+			}
+		void set_binding(SortingCollection<T>::TupleBinding* t)
+			{
+			this->binding = t;
 			}
 		
 	};
