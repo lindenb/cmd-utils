@@ -35,7 +35,7 @@ DBL_QUOTE ["]
 	return PRIMITIVE_STRING;
 	}
 {NUMBER} {
-    json_treelval.str=  JsonElement::createNumber(yytext);
+    json_treelval.element =  JsonElement::createNumber(yytext);
     return PRIMITIVE_NUMBER;
 	}
 \[ 	return  ARRAY_OPEN;
@@ -44,9 +44,9 @@ DBL_QUOTE ["]
 \} 	return  OBJECT_CLOSE;
 , 	return COMMA;
 \:	return COLON;
-true return JsonElement::createTrue();
-false return JsonElement::createFalse();
-null return JsonElement::createNull();
+true { json_treelval.element = JsonElement::createTrue(); return PRIMITIVE_TRUE;}
+false { json_treelval.element = JsonElement::createFalse(); return PRIMITIVE_FALSE;}
+null { json_treelval.element = JsonElement::createNull(); return PRIMITIVE_NULL;}
 [ \t\n]+  ;
 .	{
 	THROW("unexpected char " << yytext << ".\n");

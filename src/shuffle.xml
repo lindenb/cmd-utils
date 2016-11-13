@@ -2,7 +2,15 @@
 
 
 <options>
-	
+	<option name="ignoreLineStartingWith" type="char*" opt="p" longopt="prefix" >
+		<description>Don't sort lines starting with this prefix</description>
+	</option>
+	<option name="rseed" type="int" opt="s" longopt="seed" default="0">
+		<description>Random seed 0=use time()</description>
+	</option>
+	<option name="maxitemsinram" type="unsigned int" opt="m" longopt="maxinram" default="100000">
+		<description>max items in RAM</description>
+	</option>
 </options>
 
 

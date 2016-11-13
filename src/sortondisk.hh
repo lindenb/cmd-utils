@@ -66,7 +66,7 @@ class SortingCollection
 			bf->filename.append("/");
 			bf->filename.append("sorting.XXXXXX");
 			int fd = ::mkstemp((char*)bf->filename.c_str());
-			std::cerr << "fd = "<< fd << std::endl;
+			//std::cerr << "fd = "<< fd << std::endl;
 			if( fd == -1)  THROW("Cannot open " << bf->filename << " " << std::strerror(errno));
 			bf->ios = ::fdopen(fd,"wb");
 			if( bf->ios == 0)  THROW("Cannot open "<< bf->filename << " " << std::strerror(errno));
@@ -136,18 +136,16 @@ class SortingCollection
 				++r)
 				{
 				BuffFile* bf=(*r);
-				std::cerr << "A" << std::endl;
+				//std::cerr << "closingA" << std::endl;
 				if(bf->peeked != 0) delete bf->peeked;
 				bf->peeked=0;
-				std::cerr << "B" << std::endl;
+				//std::cerr << "closingB" << (bf->ios==0) << std::endl;
 				if(bf->ios != 0) std::fclose(bf->ios);
 				bf->ios=0;
 				bf->curr_index = bf->nitems;
-					std::cerr << "C" << std::endl;
+				//std::cerr << "closingC" << std::endl;
 				if(!bf->filename.empty()) std::remove(bf->filename.c_str());
 				}
-			std::cerr << "closed" << std::endl;
-				
 			}
 			
 		class IteratorImpl: public Iterator
@@ -160,7 +158,7 @@ class SortingCollection
 					}
 				virtual SortingCollection<T>::ptr_type next() {
 					T* best = 0;
-					std::cerr << "next" << std::endl;
+
 					typename std::vector<SortingCollection<T>::BuffFile*>::iterator rbest = owner->bufffiles.end();
 					for(typename std::vector<SortingCollection<T>::BuffFile*>::iterator r= owner->bufffiles.begin();
 						r!=owner->bufffiles.end();
@@ -170,7 +168,6 @@ class SortingCollection
 						if( bf->peeked == 0)
 							{
 							if( bf->curr_index >= bf->nitems) continue;
-							std::cerr << "read " <<  bf->curr_index << "/" <<  bf->nitems << std::endl;
 							bf->peeked = owner->binding->read( bf->ios );
 							bf->curr_index++;
 							if ( bf->curr_index == bf->nitems ) {
@@ -189,7 +186,6 @@ class SortingCollection
 					if(best!=0) {
 						(*rbest)->peeked=0;
 						}
-					std::cerr << "return.next()" << std::endl;
 					return best;
 					}
 				virtual void close()
@@ -209,7 +205,6 @@ class SortingCollection
 				r!=bufffiles.end();
 				++r)
 				{
-				std::cerr << "reopen " << (*r)->filename << std::endl;
 				(*r)->ios = std::fopen((*r)->filename.c_str(),"rb");
 				if( (*r)->ios == NULL) {
 					close();
@@ -232,7 +227,9 @@ class SortingCollection
 			}
 		~SortingCollection()
 			{
+			if(myiterator!=0) delete myiterator;
 			close();
+			
 			for(typename std::vector<BuffFile*>::iterator r= bufffiles.begin();
 				r!=bufffiles.end();
 				++r)
@@ -240,7 +237,7 @@ class SortingCollection
 				BuffFile* bf=(*r);
 				delete bf;
 				}
-			if(myiterator!=0) delete myiterator;
+
 			}
 		
 		void set_comparator(SortingCollection<T>::Comparator* c)
@@ -251,6 +248,9 @@ class SortingCollection
 			{
 			this->binding = t;
 			}
+		void set_max_itemsinram(unsigned int n) {
+			this->max_buffer_size = n;
+		}
 		
 	};
 

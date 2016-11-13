@@ -1,0 +1,19 @@
+<cmd name="WaitForFiles">
+
+
+<options>
+	<option name="timeout" opt="t" longopt="timeout" default="-1L" type="long">
+		<description>wait for 't' seconds. -1 = forever</description>
+	</option>
+	<option name="wait" opt="w" longopt="wait" default="10L" type="unsigned int">
+		<description>wait for 't' seconds between each check</description>
+	</option>
+	<option name="listfile" opt="f" longopt="file" type="char*">
+		<description>read path from this file</description>
+	</option>
+	
+	
+</options>
+
+
+</cmd>

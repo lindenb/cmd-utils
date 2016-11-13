@@ -31,11 +31,11 @@ static JsonElement* CURRENT_NODE = 0;
 %token ARRAY_CLOSE
 %token OBJECT_OPEN
 %token OBJECT_CLOSE
-%token 
-%token<str> PRIMITIVE_STRING  
+%token<str> PRIMITIVE_STRING 
+%token<element>  PRIMITIVE_TRUE PRIMITIVE_FALSE PRIMITIVE_NUMBER PRIMITIVE_NULL
 %token COMMA COLON
 %start input
-%type<element> any array array_items object  object_items PRIMITIVE_TRUE PRIMITIVE_FALSE PRIMITIVE_NUMBER PRIMITIVE_NULL
+%type<element> any array array_items object  object_items
 %type<str> prim_string
 %type<kv> object_pair
 %%
@@ -47,7 +47,7 @@ input: any {
 array: ARRAY_OPEN  ARRAY_CLOSE { $$ = JsonElement::createArray();}
 	| ARRAY_OPEN array_items ARRAY_CLOSE {$$=$2;} 
 	;
-array_items : array_items COMMA any  {$$=$1; $$->uval->push_back($3);} | any { $$=JsonElement::createArray(); $1->uval.array->push_back($1); };
+array_items : array_items COMMA any  {$$=$1; $$->uval.array->push_back($3);} | any { $$=JsonElement::createArray(); $1->uval.array->push_back($1); };
 object:
 	OBJECT_OPEN OBJECT_CLOSE { $$= JsonElement::createObject();} |
 	OBJECT_OPEN object_items OBJECT_CLOSE { $$ = $2;}
@@ -62,7 +62,7 @@ object_pair: prim_string  COLON  any
 	kv->v = $3; 
 	$$ = (void*)kv;
 	};
-any: prim_string { $$ = JsonElement::createString(*$1); delete $1; } |
+any: prim_string { $$ = JsonElement::createString($1->c_str()); delete $1; } |
 	PRIMITIVE_NULL {$$= $1; } |
 	PRIMITIVE_NUMBER { $$ =  $1; } |
 	PRIMITIVE_TRUE {$$= $1;}  |
@@ -74,7 +74,7 @@ prim_string: PRIMITIVE_STRING { $$ = $1;}
 
 %%
 
-JsonElement* JsonElement::createString(const std::string& s) {
+JsonElement* JsonElement::createString(const char* s) {
 	JsonElement* e = new JsonElement;
 	e->uval.str = new string(s);
 	e->type = JsonElement::STRING;
@@ -119,4 +119,18 @@ JsonElement* JsonElement::createObject() {
 	e->type = JsonElement::OBJECT;
 	e->uval.object = new map<string,JsonElement*>;
 	return e;
+	}
+extern int json_treeparse();
+extern FILE* json_treein;
+JsonElement*  JsonElement::parse(std::FILE*  in) {
+	json_treein = in;
+	json_treeparse();
+	json_treein = NULL;
+	return CURRENT_NODE;
+	}
+JsonElement*  JsonElement::parse(const char* s) {
+	//json_treein = in;
+	//json_treeparse();
+	//json_treein = NULL;
+	return CURRENT_NODE;
 	}

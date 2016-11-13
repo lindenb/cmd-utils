@@ -89,6 +89,8 @@ class <xsl:value-of select="@name"/>Base : public AbstractApplication
 				</xsl:when>
 				<xsl:when test="@type = 'int'">int <xsl:value-of select="@name"/>;
 				</xsl:when>
+				<xsl:when test="@type = 'unsigned int'">unsigned int <xsl:value-of select="@name"/>;
+				</xsl:when>
 				<xsl:when test="@type = 'long'">int <xsl:value-of select="@name"/>;
 				</xsl:when>
 				<xsl:when test="@type = 'double'">double <xsl:value-of select="@name"/>;
@@ -137,6 +139,12 @@ class <xsl:value-of select="@name"/>Base : public AbstractApplication
 						</xsl:choose>
 					</xsl:when>
 					<xsl:when test="@type = 'int'">
+						<xsl:choose>
+							<xsl:when test="@default"><xsl:value-of select="@default"/></xsl:when>
+							<xsl:otherwise>0</xsl:otherwise>
+						</xsl:choose>
+					</xsl:when>
+					<xsl:when test="@type = 'unsigned int'">
 						<xsl:choose>
 							<xsl:when test="@default"><xsl:value-of select="@default"/></xsl:when>
 							<xsl:otherwise>0</xsl:otherwise>
@@ -287,6 +295,15 @@ class <xsl:value-of select="@name"/>Base : public AbstractApplication
 					<xsl:when test="@type = 'string-list'"> this-&gt;<xsl:value-of select="@name"/>.push_back(optarg); </xsl:when>
 					<xsl:when test="@type = 'string-set'"> this-&gt;<xsl:value-of select="@name"/>.insert(optarg); </xsl:when>
 					<xsl:when test="@type = 'int'"> this-&gt;<xsl:value-of select="@name"/>  = atoi(optarg);</xsl:when>
+					<xsl:when test="@type = 'unsigned int'"> {
+					char* endptr = 0;
+					this-&gt;<xsl:value-of select="@name"/>  = (unsigned int)strtoul(optarg,&amp;endptr,10);
+					if(*endptr != '\0' || endptr == optarg) {
+						std::cerr &lt;&lt; "Option <xsl:apply-templates select="." mode="label"/> expects a long but got \"" &lt;&lt;  optarg &lt;&lt; "\"." &lt;&lt; std::endl;
+						std::exit(EXIT_FAILURE); 
+						}
+					break;
+					}</xsl:when>
 					<xsl:when test="@type = 'long'"> {
 					char* endptr = 0;
 					this-&gt;<xsl:value-of select="@name"/>  = strtol(optarg,&amp;endptr,10);
