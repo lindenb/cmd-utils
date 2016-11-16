@@ -1,0 +1,20 @@
+<cmd name="MinMax">
+
+
+<options>
+	<option name="ignore_errors" opt="w" longopt="w"  type="bool">
+		<description>Treat errors are warning</description>
+	</option>
+	<option name="delimiter" opt="d" longopt="delim"  type="char" default="\t">
+		<description>delimiter</description>
+	</option>
+	<option name="hide_min" opt="m" longopt="min"  type="bool">
+		<description>Don't print min</description>
+	</option>
+	<option name="hide_max" opt="M" longopt="max"  type="bool">
+		<description>Don't print max</description>
+	</option>
+</options>
+
+
+</cmd>
