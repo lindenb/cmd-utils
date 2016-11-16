@@ -1,0 +1,17 @@
+<cmd name="MathNormalize">
+
+
+<options>
+	<option name="ignore_errors" opt="w" longopt="w"  type="bool">
+		<description>Treat errors are warning</description>
+	</option>
+	<option name="on_median" opt="m" longopt="median"  type="bool">
+		<description>Normalize on median</description>
+	</option>
+	<option name="on_average" opt="a" longopt="average"  type="bool">
+		<description>Normalize on average</description>
+	</option>
+</options>
+
+
+</cmd>
