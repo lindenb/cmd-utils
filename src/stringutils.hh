@@ -30,7 +30,9 @@ class StringUtils
 			return ltrim(rtrim(s));
 		}
 
-
+		bool isHex(int c) const {
+		return (c>='A' && c<='F') || std::isdigit(c); 
+		}
 	};
 
 #endif

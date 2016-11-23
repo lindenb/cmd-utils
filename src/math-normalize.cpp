@@ -67,17 +67,17 @@ class MathNormalize: public AbstractMath<MathNormalizeBase>
 					}
 				else
 					{
-					double total=0;
+					double total=0.0;
 					for(std::vector<Point>::iterator i= points.begin();i!=points.end();++i)
 						{
-						total +=i->value;
+						total += (*i).value;
 						}
 					pivot = total / points.size();
 					}
 			 
-				for(std::vector<Point>::size_type i= 0;i<points.size();++i)
+				for(std::vector<Point>::iterator i= points.begin();i!=points.end();++i)
 						{
-						i->value -= pivot;
+						(*i).value -= pivot;
 						}
 				}
 			
