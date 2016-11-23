@@ -74,10 +74,14 @@ class MathNormalize: public AbstractMath<MathNormalizeBase>
 						}
 					pivot = total / points.size();
 					}
-			 
+			 	if( pivot == 0 )
+			 		{
+			 		cerr << "median/average is 0.0. Cannot divide." << endl;
+			 		return EXIT_FAILURE;
+			 		}
 				for(std::vector<Point>::size_type i= 0;i<points.size();++i)
 						{
-						i->value -= pivot;
+						i->value /= pivot;
 						}
 				}
 			
