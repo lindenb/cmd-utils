@@ -67,22 +67,23 @@ class MathNormalize: public AbstractMath<MathNormalizeBase>
 					}
 				else
 					{
-					double total=0;
+					double total=0.0;
 					for(std::vector<Point>::iterator i= points.begin();i!=points.end();++i)
 						{
-						total +=i->value;
+						total += (*i).value;
 						}
 					pivot = total / points.size();
 					}
+
 			 	if( pivot == 0 )
 			 		{
 			 		cerr << "median/average is 0.0. Cannot divide." << endl;
 			 		return EXIT_FAILURE;
 			 		}
-				for(std::vector<Point>::size_type i= 0;i<points.size();++i)
-						{
-						i->value /= pivot;
-						}
+				for(std::vector<Point>::iterator i= points.begin();i!=points.end();++i)
+					{
+					 (*i).value /= pivot;
+					}
 				}
 			
 			double min_value = std::numeric_limits<double>::max();

@@ -49,7 +49,7 @@ $(1).m4.hh : parser.m4
 
 endef
 
-APPS0 = math-minmax math-normalize waitforfiles shuffle hershey combination wordcount headtail dispatch escape-xml escape-c colsmd5 linearizefasta tab2spaces groupby table2yxv cutbyname yxv2table math-sum math-mean math-median
+APPS0 = escape-http math-minmax math-normalize waitforfiles shuffle hershey combination wordcount headtail dispatch escape-xml escape-c colsmd5 linearizefasta tab2spaces groupby table2yxv cutbyname yxv2table math-sum math-mean math-median
 APPS = $(APPS0) treepack json_array_foreach json_object_foreach
 
 all:  $(APPS)

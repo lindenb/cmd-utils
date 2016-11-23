@@ -43,12 +43,21 @@ public:
 			unsigned long count=1UL;
 			if( uniqc )
 				{
-				if(line.size()<8) THROW("expected output of uniq-c starting with a line longer than 8 chars");
-				string left = line.substr(0,8);
-				line = line.substr(8);
-				char* p2;
-				count = strtoul (left.c_str(), &p2, 0);
-				if(p2==NULL || *p2!=' ') THROW("expected with char after uniq number");
+				count = 0UL;
+				string::size_type i1=0;
+				while(i1 < line.size() && isspace(line[i1])) i1++;
+				if(i1==0) THROW("expected line starting with one or more blanks");
+				string::size_type i2=i1;
+				while(i2 < line.size() && isdigit(line[i2])) {
+					count = count*10 + (line[i2]-'0');
+					i2++;
+					}
+				if(i2==i1 || count==0UL ) THROW("expected a number");
+
+				if(!(i2 < line.size() && isspace(line[i2]))) {
+					THROW("expected a space after the count");
+					}
+				line = line.substr(i2+1);
 				}
 			std::map<std::string,unsigned long,ci_less>::iterator r=w2c->find(line);
 			if( r == w2c->end()) {
