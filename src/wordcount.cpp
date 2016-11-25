@@ -94,14 +94,22 @@ public:
 			r!=w2c->end();
 			++r)
 			{
-			cout << (r->second) << this->delimiter ;
+			if(!this->right)
+				{
+				cout << (r->second) << this->delimiter ;
+				}
 			if( this->histogram )
 				{
 				int n = ceil((r->second/sum)*(histwidth));
 				for(int i=0;i< histwidth;++i) cout << (i<n?"#":" ");
 				cout << this->delimiter ;
 				}
-			cout << (r->first) << endl;
+			cout << (r->first) ;
+			if(this->right)
+				{
+				cout  << this->delimiter << (r->second);
+				}
+			cout << endl;
 			}
 		delete w2c;
 		return EXIT_SUCCESS;

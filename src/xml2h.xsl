@@ -201,8 +201,8 @@ class <xsl:value-of select="@name"/>Base : public AbstractApplication
 				<xsl:value-of select="@longopt"/>
 				<xsl:text>",</xsl:text>
 					<xsl:choose>
-						<xsl:when test="@type!='bool'">no_argument</xsl:when>
-						<xsl:otherwise>required_argument</xsl:otherwise>
+						<xsl:when test="@type!='bool'">required_argument</xsl:when>
+						<xsl:otherwise>no_argument</xsl:otherwise>
 					</xsl:choose>
 				<xsl:text>,0,</xsl:text>
 				<xsl:choose>
