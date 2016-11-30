@@ -1,0 +1,26 @@
+<cmd name="FromTo">
+
+
+<options>
+	<option name="multiple" opt="m" longopt="multiple" type="bool">
+		<description>Accept multiple occurences of from/to </description>
+	</option>
+	<option name="from_str" opt="f" longopt="from" type="char*">
+		<description>start from this string (including)</description>
+	</option>
+	<option name="after_str" opt="a" longopt="after" type="char*">
+		<description>start from this string (excluding)</description>
+	</option>
+	
+	
+	<option name="to_str" opt="t" longopt="t" type="char*">
+		<description>end at this string (including)</description>
+	</option>
+	<option name="before_str" opt="b" longopt="before" type="char*">
+		<description>end at this string (excluding)</description>
+	</option>
+	
+</options>
+
+
+</cmd>
