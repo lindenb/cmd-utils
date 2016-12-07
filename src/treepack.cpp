@@ -36,6 +36,8 @@ struct Rect {
 		Rect<T> inset() { return this->inset(0.9);}
 		T getMidX() const { return (T)(getX()+getWidth()/2.0);}
 		T getMidY() const { return (T)(getY()+getHeight()/2.0);}
+		T getCenterX() const { return getMidX();}
+		T getCenterY() const { return getMidY();}
 	};
 
 
@@ -68,7 +70,6 @@ class TreePack
 		virtual void setBounds(const Rectangle& bounds)=0;
 		virtual Rectangle getBounds()=0;
 		virtual double getWeight() const = 0;
-		virtual xmlNodePtr svg(TreePack* c) = 0;
 	};
 
 class DefaultTreePack : public TreePack
@@ -89,6 +90,23 @@ class DefaultTreePack : public TreePack
 				delete r->second;
 				}
 			}
+		virtual bool isLeaf() const {
+			return this->children.empty();
+			}
+		virtual int getDepth() {
+			int d=0;
+			DefaultTreePack* curr=this;
+			while(curr->parent!=NULL) {
+				++d;
+				curr = curr->parent;
+				}
+			return d;
+			}
+		Rectangle getTitleFrame()
+		{//TODO
+		Rectangle r;
+		return r;
+		}
 		virtual void setBounds(const Rectangle& bounds)	 {
 			this->bounds  = bounds;
 			}
@@ -96,6 +114,10 @@ class DefaultTreePack : public TreePack
 		virtual Rectangle getBounds()	 {
 			return bounds;
 			}
+				virtual Rectangle getChildrenFrame()	 {
+			return bounds;
+			}
+			
 	
 		virtual double  getWeight() const	 {
 			if(children.empty() )
@@ -115,162 +137,7 @@ class DefaultTreePack : public TreePack
 				return w;
 				}
 			}
-		virtual xmlNodePtr svg(TreePack* c,xmlDocPtr document)
-			{
-			Hershey hershey;
-	
-			if( this->parent == null)
-				{
-				xmlNodePtr svg = ::xmlNewNode(SVG,"svg");
-				svg.setAttribute("width",this->bounds.width);
-				svg.setAttribute("height",this->bounds.height);
-		
-		
-				xmlNodePtr defs = ::xmlNewNode(SVG,"defs");
-				svg.appendChild(defs);
-		
-				xmlNodePtr style = ::xmlNewNode(SVG,"style");
-				style.setAttribute("type","text/css");
-				style.appendChild(document.createTextNode(
-					"svg {fill:none;stroke:black;stroke-width:0.5px;}\n"+
-					".r0 {fill:rgb(240,240,240);stroke:black;stroke-width:0.5px;}\n"+
-					".r1 {fill:rgb(220,220,220);stroke:black;stroke-width:0.5px;}\n"+
-					".lbla0 {stroke:black;stroke-width:1px;}\n"+
-					".lblb0 {stroke:red;stroke-width:1px;}\n"+
-					".lbla1 {stroke:gray;stroke-width:1px;}\n"+
-					".lblb1 {stroke:red;stroke-width:1px;}\n"+
-					""
-					));
 
-				defs.appendChild(style);
-		
-				xmlNodePtr title = ::xmlNewNode(SVG,"svg:title");
-				title.appendChild(document.createTextNode("TreeMap"));
-				svg.appendChild(title);
-		
-				xmlNodePtr rect =  document.createElementNS(SVG,"svg:rect");
-				rect.setAttribute("x",0);
-				rect.setAttribute("y",0);
-				rect.setAttribute("width",(this->bounds.width-1));
-				rect.setAttribute("height",(this->bounds.height-1));
-				rect.setAttribute("style","fill:white;stroke:black;");
-				::xmlAddChild(svg,rect);
-	
-		
-				xmlNodePtr g = document.createElementNS(SVG,"svg:g");
-				::xmlAddChild(svg,g);
-		
-				var L = [];
-				for(var k in this->children) L.push(this->children[k]);
-				packer.layout2(L,this->bounds);
-		
-				for(var c in L)
-					{
-					var d = L[c].svg(packer);
-					if(d==null) continue;
-					g.appendChild(d);
-					}
-		
-				rect =  document.createElementNS(SVG,"svg:rect");
-				rect.setAttribute("x",0);
-				rect.setAttribute("y",0);
-				rect.setAttribute("width",(this->bounds.width-1));
-				rect.setAttribute("height",(this->bounds.height-1));
-				rect.setAttribute("style","fill:none;stroke:black;");
-				::xmlAddChild(svg,rect);
-			
-				return svg;
-				}
-			else
-				{
-		
-				if(this->getWeight()<=0)
-					   {
-					   return null;
-					   }
-		
-				   var bounds = this->getBounds();
-				   var insets = bounds.inset(0.9);
-				   var frameUsed=bounds;
-				   
-				   
-				   if(bounds.getWidth()<=1 || bounds.getHeight()<=1)
-					   {
-					   return null;
-					   }
-				   var g = document.createElementNS(SVG,"svg:g");
-
-				   
-				   
-
-				   var rect =  document.createElementNS(SVG,"svg:rect");
-				   g.appendChild(rect);
-				   rect.setAttribute("x",frameUsed.x);
-		   		   rect.setAttribute("y",frameUsed.y);
-		   		   rect.setAttribute("width",frameUsed.width);
-		   		   rect.setAttribute("height",frameUsed.height);
-		   		   rect.setAttribute("class", "r"+(this->getDepth()%2));
-		   		   var title = document.createElementNS(SVG,"svg:title");
-		   		   rect.appendChild(title);
-		   		   title.appendChild( document.createTextNode(this->category+":"+this->name+"="+this->getWeight()));
-
-		
-				   if(!this->isLeaf())
-					   {
-					   var path =  document.createElementNS(SVG,"svg:path");
-					   path.setAttribute("style","stroke:black;fill:none;");
-					   path.setAttribute("d", hershey.svgPath(this->name+"="+this->getWeight(), this->getTitleFrame()) );
-					   path.setAttribute("title",this->category+":"+this->name+"="+this->getWeight());
-
-					   g.appendChild(path);
-					   
-					   
-					   
-					   var L = [];
-					   for(var k in this->children) L.push(this->children[k]);
-					   packer.layout2(L,this->getChildrenFrame());
-					   
-					   for(var c in L)
-						{
-						var d = L[c].svg(packer);
-						if(d==null) {
-							continue;
-							}
-						g.appendChild(d);
-						}
-					   
-					   }
-				   else
-					   {
-
-					  
-					   	var f_up= new Rectangle(
-					   			insets.getX(),insets.getY(),
-					   			insets.getWidth(),insets.getHeight()/2.0
-					   			).inset(0.9);
-					   	var p1= document.createElementNS(SVG,"svg:path");
-					   	 g.appendChild(p1);
-					   	p1.setAttribute("class","lbla"+(this->getDepth()%2));
-						p1.setAttribute("d",hershey.svgPath(this->name,f_up));
-						p1.setAttribute("style","stroke-width:"+ 
-							(3.0/(this->getDepth()+1) )
-							);
-
-						var f_down=new Rectangle(
-								insets.getX(),insets.getCenterY(),
-								insets.getWidth(),insets.getHeight()/2.0
-					   			);
-					   	var p2= document.createElementNS(SVG,"svg:path");
-					   	p2.setAttribute("class","lblb"+(this->getDepth()%2));
-					   	p2.setAttribute("d",hershey.svgPath(""+this->getWeight(),f_down));
-					   	g.appendChild(p2);
-					   	 
-						//w.writeAttribute("d", hershey.svgPath(convertWeightToString(),f_down) );
-						//w.writeAttribute("class","lblb"+(getDepth()%2));
-					   }
-				   
-				   return g;
-			}
 		};
 
 
@@ -420,174 +287,208 @@ void Packer::sliceLayout(std::vector<TreePack*>* items, int start, int end, Rect
                 a+=b;
             }
         }
- 
- 
-xmlNodePtr TreePack::svg(Packer* packer) {
-	var hershey = new Hershey();
-	
-	if( this->parent == null)
-		{
-		var svg = document.createElementNS(SVG,"svg:svg");
-		svg.setAttribute("width",this->bounds.width);
-		svg.setAttribute("height",this->bounds.height);
-		
-		
-		var defs = document.createElementNS(SVG,"svg:defs");
-		svg.appendChild(defs);
-		
-		var style = document.createElementNS(SVG,"svg:style");
-		style.setAttribute("type","text/css");
-		style.appendChild(document.createTextNode(
-			"svg {fill:none;stroke:black;stroke-width:0.5px;}\n"+
-			".r0 {fill:rgb(240,240,240);stroke:black;stroke-width:0.5px;}\n"+
-			".r1 {fill:rgb(220,220,220);stroke:black;stroke-width:0.5px;}\n"+
-			".lbla0 {stroke:black;stroke-width:1px;}\n"+
-			".lblb0 {stroke:red;stroke-width:1px;}\n"+
-			".lbla1 {stroke:gray;stroke-width:1px;}\n"+
-			".lblb1 {stroke:red;stroke-width:1px;}\n"+
-			""
-			));
 
-		defs.appendChild(style);
-		
-		var title = document.createElementNS(SVG,"svg:title");
-		title.appendChild(document.createTextNode("TreeMap"));
-		svg.appendChild(title);
-		
-		var rect =  document.createElementNS(SVG,"svg:rect");
-		rect.setAttribute("x",0);
-		rect.setAttribute("y",0);
-		rect.setAttribute("width",(this->bounds.width-1));
-		rect.setAttribute("height",(this->bounds.height-1));
-		rect.setAttribute("style","fill:white;stroke:black;");
-		svg.appendChild(rect);
-	
-		
-		var g = document.createElementNS(SVG,"svg:g");
-		svg.appendChild(g);
-		
-		var L = [];
-		for(var k in this->children) L.push(this->children[k]);
-	        packer.layout2(L,this->bounds);
-		
-		for(var c in L)
-			{
-			var d = L[c].svg(packer);
-			if(d==null) continue;
-			g.appendChild(d);
-			}
-		
-		rect =  document.createElementNS(SVG,"svg:rect");
-		rect.setAttribute("x",0);
-		rect.setAttribute("y",0);
-		rect.setAttribute("width",(this->bounds.width-1));
-		rect.setAttribute("height",(this->bounds.height-1));
-		rect.setAttribute("style","fill:none;stroke:black;");
-		svg.appendChild(rect);
-	        
-		return svg;
-		}
-	else
-		{
-		
-		if(this->getWeight()<=0)
-			   {
-			   return null;
-			   }
-		
-		   var bounds = this->getBounds();
-		   var insets = bounds.inset(0.9);
-		   var frameUsed=bounds;
-		   
-		   
-		   if(bounds.getWidth()<=1 || bounds.getHeight()<=1)
-			   {
-			   return null;
-			   }
-		   var g = document.createElementNS(SVG,"svg:g");
-
-		   
-		   
-
-		   var rect =  document.createElementNS(SVG,"svg:rect");
-		   g.appendChild(rect);
-		   rect.setAttribute("x",frameUsed.x);
-   		   rect.setAttribute("y",frameUsed.y);
-   		   rect.setAttribute("width",frameUsed.width);
-   		   rect.setAttribute("height",frameUsed.height);
-   		   rect.setAttribute("class", "r"+(this->getDepth()%2));
-   		   var title = document.createElementNS(SVG,"svg:title");
-   		   rect.appendChild(title);
-   		   title.appendChild( document.createTextNode(this->category+":"+this->name+"="+this->getWeight()));
-
-		
-		   if(!this->isLeaf())
-			   {
-			   var path =  document.createElementNS(SVG,"svg:path");
-			   path.setAttribute("style","stroke:black;fill:none;");
-			   path.setAttribute("d", hershey.svgPath(this->name+"="+this->getWeight(), this->getTitleFrame()) );
-			   path.setAttribute("title",this->category+":"+this->name+"="+this->getWeight());
-
-			   g.appendChild(path);
-			   
-			   
-			   
-			   var L = [];
-			   for(var k in this->children) L.push(this->children[k]);
-	                   packer.layout2(L,this->getChildrenFrame());
-			   
-			   for(var c in L)
-				{
-				var d = L[c].svg(packer);
-				if(d==null) {
-					continue;
-					}
-				g.appendChild(d);
-				}
-			   
-			   }
-		   else
-			   {
-
-			  
-			   	var f_up= new Rectangle(
-			   			insets.getX(),insets.getY(),
-			   			insets.getWidth(),insets.getHeight()/2.0
-			   			).inset(0.9);
-			   	var p1= document.createElementNS(SVG,"svg:path");
-			   	 g.appendChild(p1);
-			   	p1.setAttribute("class","lbla"+(this->getDepth()%2));
-				p1.setAttribute("d",hershey.svgPath(this->name,f_up));
-				p1.setAttribute("style","stroke-width:"+ 
-					(3.0/(this->getDepth()+1) )
-					);
-
-				var f_down=new Rectangle(
-						insets.getX(),insets.getCenterY(),
-						insets.getWidth(),insets.getHeight()/2.0
-			   			);
-			   	var p2= document.createElementNS(SVG,"svg:path");
-			   	p2.setAttribute("class","lblb"+(this->getDepth()%2));
-			   	p2.setAttribute("d",hershey.svgPath(""+this->getWeight(),f_down));
-			   	g.appendChild(p2);
-			   	 
-				//w.writeAttribute("d", hershey.svgPath(convertWeightToString(),f_down) );
-				//w.writeAttribute("class","lblb"+(getDepth()%2));
-			   }
-		   
-		   return g;
-		   }
-	}
-		 
-#define SETATTRIBUTE(NODE,NAME,content) do {ostringstream _os; _os << content; xmlSetProp(NODE,NAME,_os.str()); } while(0)
+#define SETATTRIBUTE(NODE,NAME,content) do {ostringstream _os; _os << content; ::xmlSetProp(NODE,BAD_CAST NAME,BAD_CAST _os.str().c_str()); } while(0)
 
 class TreePackApp: public TreePackBase
 	{
 	public:
-		TreePackApp() {}
+		xmlNsPtr SVG;
+		TreePackApp():SVG(NULL) {}
 		virtual ~TreePackApp() {}
 		
+		double parseDouble(const string& s) {
+			return 0.0;
+			}
+
+		xmlNodePtr svg(DefaultTreePack* node,Packer* packer)
+			{
+			Hershey hershey;
+	
+			if( node->parent == NULL)
+				{
+				xmlNodePtr svg = ::xmlNewNode(SVG,BAD_CAST "svg");
+				SETATTRIBUTE(svg,"width",node->bounds.width);
+				SETATTRIBUTE(svg,"height",node->bounds.height);
 		
+		
+				xmlNodePtr defs = ::xmlNewNode(SVG,BAD_CAST "defs");
+				::xmlAddChild(svg,defs);
+		
+				xmlNodePtr style = ::xmlNewNode(SVG,BAD_CAST "style");
+				SETATTRIBUTE(style,"type","text/css");
+				::xmlAddChild(style,::xmlNewText(BAD_CAST 
+					"svg {fill:none;stroke:black;stroke-width:0.5px;}\n"
+					".r0 {fill:rgb(240,240,240);stroke:black;stroke-width:0.5px;}\n"
+					".r1 {fill:rgb(220,220,220);stroke:black;stroke-width:0.5px;}\n"
+					".lbla0 {stroke:black;stroke-width:1px;}\n"
+					".lblb0 {stroke:red;stroke-width:1px;}\n"
+					".lbla1 {stroke:gray;stroke-width:1px;}\n"
+					".lblb1 {stroke:red;stroke-width:1px;}\n"
+					""
+					));
+				::xmlAddChild(defs,style);
+		
+				xmlNodePtr title = ::xmlNewNode(SVG,BAD_CAST "title");
+				::xmlAddChild(title,::xmlNewText(BAD_CAST "TreeMap"));
+				::xmlAddChild(svg,title);
+		
+				xmlNodePtr rect = ::xmlNewNode(SVG,BAD_CAST "rect");
+				SETATTRIBUTE(rect,"x",0);
+				SETATTRIBUTE(rect,"y",0);
+				SETATTRIBUTE(rect,"width",(node->bounds.width-1));
+				SETATTRIBUTE(rect,"height",(node->bounds.height-1));
+				SETATTRIBUTE(rect,"style","fill:white;stroke:black;");
+				::xmlAddChild(svg,rect);
+	
+		
+				xmlNodePtr g = ::xmlNewNode(SVG,BAD_CAST "svg");
+				::xmlAddChild(svg,g);
+		
+				vector<TreePack*> L;
+				for(map<string,DefaultTreePack*>::iterator k=node->children.begin();
+					k!=node->children.end();
+					++k
+					) {
+					L.push_back(k->second);
+					}
+				
+				packer->layout(&L,node->bounds);
+		
+				for(size_t c=0;c< L.size();++c)
+					{
+					xmlNodePtr d = this->svg((DefaultTreePack*)L[c],packer);
+					if(d==NULL) continue;
+					::xmlAddChild(g,d);
+					}
+		
+				rect =   ::xmlNewNode(SVG,BAD_CAST "rect");
+				SETATTRIBUTE(rect,"x",0);
+				SETATTRIBUTE(rect,"y",0);
+				SETATTRIBUTE(rect,"width",(node->bounds.width-1));
+				SETATTRIBUTE(rect,"height",(node->bounds.height-1));
+				SETATTRIBUTE(rect,"style","fill:none;stroke:black;");
+				::xmlAddChild(svg,rect);
+			
+				return svg;
+				}
+			else
+				{
+		
+				if(node->getWeight()<=0)
+					   {
+					   return NULL;
+					   }
+		
+				   Rectangle bounds = node->getBounds();
+				   Rectangle insets = bounds.inset(0.9);
+				   Rectangle frameUsed=bounds;
+				   
+				   
+				   if(bounds.getWidth()<=1 || bounds.getHeight()<=1)
+					   {
+					   return NULL;
+					   }
+				   xmlNodePtr g = ::xmlNewNode(SVG,BAD_CAST "g");
+
+				   
+				   
+
+				   xmlNodePtr rect =  ::xmlNewNode(SVG,BAD_CAST "rect");
+				   ::xmlAddChild(g,rect);
+				   SETATTRIBUTE(rect,"x",frameUsed.x);
+		   		   SETATTRIBUTE(rect,"y",frameUsed.y);
+		   		   SETATTRIBUTE(rect,"width",frameUsed.width);
+		   		   SETATTRIBUTE(rect,"height",frameUsed.height);
+		   		   SETATTRIBUTE(rect,"class", "r"+(node->getDepth()%2));
+		   		   xmlNodePtr title = ::xmlNewNode(SVG,BAD_CAST"title");
+		   		   
+		   		    ::xmlAddChild(rect,title);
+		   		   
+		   		    ::xmlAddChild(title,rect);
+		   		   
+		   		    {
+		   		    ostringstream _os;
+		   		    _os << node->category<<":"<<node->name<<"="<<node->getWeight();
+		   		    ::xmlAddChild(title,::xmlNewText(BAD_CAST _os.str().c_str()));
+					}
+		
+				   if(!node->isLeaf())
+					   {
+					   xmlNodePtr path = ::xmlNewNode(SVG,BAD_CAST"path");
+					   SETATTRIBUTE(path,"style","stroke:black;fill:none;");
+					   
+					   {
+					    ostringstream _os;
+					    _os << node->name<<"="<<node->getWeight();
+					   SETATTRIBUTE(path,"d", hershey.svgPath(_os.str(), node->getTitleFrame()) );
+					   }
+					   
+					   {
+					   ostringstream _os;
+					   _os << node->category<<":"<<node->name+"="<<node->getWeight();
+					   SETATTRIBUTE(path,"title",_os.str());
+						}
+
+					   ::xmlAddChild(g,path);
+					   
+					   
+					   vector<TreePack*> L;
+					  for(map<string,DefaultTreePack*>::iterator k=node->children.begin();
+							k!=node->children.end();
+							++k
+							)
+							{
+					   		L.push_back(k->second);
+					   		}
+					   packer->layout(&L,node->getChildrenFrame());
+					   
+					   for(size_t  c=0;c<L.size();++c)
+						{
+						xmlNodePtr d = svg((DefaultTreePack*) L[c],packer);
+						if(d==NULL) {
+							continue;
+							}
+
+						::xmlAddChild(g,d);
+						}
+					   
+					   }
+				   else
+					   {
+
+					  
+					   	Rectangle f_up= Rectangle(
+					   			insets.getX(),insets.getY(),
+					   			insets.getWidth(),insets.getHeight()/2.0
+					   			).inset(0.9);
+					   	xmlNodePtr p1= ::xmlNewNode(SVG,BAD_CAST"path");
+
+					   	::xmlAddChild(g,p1); 
+					   	 
+					   	SETATTRIBUTE(p1,"class","lbla"+(node->getDepth()%2));
+						SETATTRIBUTE(p1,"d",hershey.svgPath(node->name,f_up));
+						SETATTRIBUTE(p1,"style","stroke-width:"+ 
+							(3.0/(node->getDepth()+1) )
+							);
+
+						Rectangle f_down(
+								insets.getX(),insets.getCenterY(),
+								insets.getWidth(),insets.getHeight()/2.0
+					   			);
+					   	xmlNodePtr p2= document.createElementNS(SVG,"svg:path");
+					   	SETATTRIBUTE(p2,"class","lblb"+(node->getDepth()%2));
+					   	SETATTRIBUTE(p2,"d",hershey.svgPath(""+node->getWeight(),f_down));
+					   	::xmlAddChild(g,p2); 
+					   	 
+						//w.writeAttribute("d", hershey.svgPath(convertWeightToString(),f_down) );
+						//w.writeAttribute("class","lblb"+(getDepth()%2));
+					   }
+				   
+				   return g;
+				   }
+			}
+
 		virtual void processIstream(const char* fname,istream& in) {
 			StringSplitter splitter;
 			splitter.set_delimiter(this->delimiter);
@@ -603,9 +504,9 @@ class TreePackApp: public TreePackBase
 				}
 
 			RootTreePack root;
-			xmlDocPtr dom = ::xmlNewDoc("1.0");
-			xmlNsPtr svgns = ::xmlNewNs(dom, "",NULL);
-			xmlNodePtr svgroot = xmlNewNode(svgns,"svg");
+			xmlDocPtr dom = ::xmlNewDoc(BAD_CAST "1.0");
+			xmlNsPtr svgns = NULL;//::xmlNewNs(dom, BAD_CAST"",NULL);
+			xmlNodePtr svgroot = xmlNewNode(svgns,BAD_CAST"svg");
 			SETATTRIBUTE(svgroot,"width",image_width);
 			SETATTRIBUTE(svgroot,"height",image_height);
 			
@@ -619,7 +520,7 @@ class TreePackApp: public TreePackBase
 					THROW("line " << nLine << ":\"" << line << "\". Expected " << header.size() << " tokens but got " << tokens.size());
 					}
 					
-				double weight = parseDouble(tokens[tokens.length-1].c_str());
+				double weight = parseDouble(tokens[tokens.size()-1].c_str());
 					
 				DefaultTreePack* curr = &root;
 				
@@ -650,7 +551,8 @@ class TreePackApp: public TreePackBase
 			root.bounds.y=0;
 			root.bounds.width=this->image_width;
 			root.bounds.height=this->image_height;
-			appendChild(svgroot,root.svg(&packer));
+			svg(&root,&packer);
+
 			
 			::xmlDocDump(stdout,dom);
 			
