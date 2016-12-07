@@ -5,6 +5,9 @@
 	<option name="delimiter" opt="d" longopt="delim" default="\t" type="char"></option>
 	<option name="columns" opt="t" longopt="column"  type="string-set"></option>
 	<option name="inverse" opt="v" longopt="inverse" type="bool"></option>
+	<option name="is_regex" opt="r" longopt="regex" type="bool">
+		<description>column(s) name(s) are regex</description>
+	</option>
 	<option name="abort_if_missing" opt="w" longopt="warning" type="bool"></option>
 </options>
 

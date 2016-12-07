@@ -2,6 +2,7 @@
 #include <map>
 #include "cutbyname.tab.h"
 #include "stringsplitter.hh"
+#include "regexp.hh"
 
 using namespace std;
 
@@ -16,31 +17,50 @@ public:
 			THROW("Cannot read the first line." );
 			}
 		std::vector<std::string> header=splitter.split(line);
-		map<string,size_t> header2col;
+		
 		std::set<size_t> offsets;
 		
-		for(size_t i=0;i< header.size();++i)
+		if(this->is_regex)
 			{
-			set<string>::iterator r= this->columns.find(header.at(i));
-			if(r==this->columns.end()) continue;
-			if( header2col.find(header.at(i))!= header2col.end())
+			for(set<string>::iterator r=this->columns.begin();r!=this->columns.end();++r)
 				{
-				THROW("Duplicate column " << header.at(i) <<" in header");
-				}
-			header2col.insert(make_pair(header.at(i),i));
-			offsets.insert(i);
-			}
-		
-		for(set<string>::iterator r=this->columns.begin();r!=this->columns.end();++r)
-			{
-			if( header2col.find(*r) != header2col.end() ) continue;
-			cerr << "Error: Cannot find "<< (*r) << " in header." << endl;
-			if(this->abort_if_missing)
-				{
-				exit(EXIT_FAILURE);
+				RegExp regex(r->c_str());
+				for(size_t i=0;i< header.size();++i)
+					{
+					if(regex.test(header.at(i).c_str()))
+						{
+						offsets.insert(i);
+						}
+					}
+				
 				}
 			}
+		else
+			{
+			map<string,size_t> header2col;
+			for(size_t i=0;i< header.size();++i)
+				{
+				set<string>::iterator r= this->columns.find(header.at(i));
+				if(r==this->columns.end()) continue;
+				if( header2col.find(header.at(i))!= header2col.end())
+					{
+					THROW("Duplicate column " << header.at(i) <<" in header");
+					}
+				header2col.insert(make_pair(header.at(i),i));
+				offsets.insert(i);
+				}
+			
 		
+			for(set<string>::iterator r=this->columns.begin();r!=this->columns.end();++r)
+				{
+				if( header2col.find(*r) != header2col.end() ) continue;
+				cerr << "Error: Cannot find "<< (*r) << " in header." << endl;
+				if(this->abort_if_missing)
+					{
+					exit(EXIT_FAILURE);
+					}
+				}
+			}
 		vector<string> tokens;
 		do
 			{

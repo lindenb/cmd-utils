@@ -263,6 +263,8 @@ void Packer::sliceLayout(std::vector<TreePack*>* items, int start, int end, Rect
                 a+=b;
             }
         }
+        
+#define SETATTRIBUTE(NODE,NAME,content) do {ostringstream _os; _os << content; xmlSetProp(NODE,NAME,_os.str()); } while(0)
 
 class TreePackApp: public TreePackBase
 	{
@@ -282,7 +284,13 @@ class TreePackApp: public TreePackBase
 			splitter.split(line,header);
 
 			RootTreePack root;
-
+			xmlDocPtr dom = ::xmlNewDoc("1.0");
+			xmlNsPtr svgns = ::xmlNewNs(dom, "",NULL);
+			xmlNodePtr root = xmlNewNode(svgns,"svg");
+			SETATTRIBUTE(root,"width",image_width);
+			SETATTRIBUTE(root,"height",image_height);
+			
+				
 			int nLine=0;
 			while(getline(in,line)) {
 				++nLine;
@@ -318,6 +326,9 @@ class TreePackApp: public TreePackBase
 			root.bounds.y=0;
 			root.bounds.width=this->image_width;
 			root.bounds.height=this->image_height;
+			
+			
+			::xmlDocDump(stdout,dom);
 			
 			xmlTextWriterPtr writer = xmlNewTextWriterFilename("-", 0);
 			if(writer==NULL) THROW("cannot create xml writer");

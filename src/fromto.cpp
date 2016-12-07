@@ -19,7 +19,6 @@ public:
 		string line;
 		bool is_in=(reg_begin==0?true:false);
 		
-		
 		while(getline(in,line)) {
 			if(!is_in)
 				{
