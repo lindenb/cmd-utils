@@ -68,6 +68,7 @@ class TreePack
 		virtual void setBounds(const Rectangle& bounds)=0;
 		virtual Rectangle getBounds()=0;
 		virtual double getWeight() const = 0;
+		virtual xmlNodePtr svg(TreePack* c) = 0;
 	};
 
 class DefaultTreePack : public TreePack
@@ -113,6 +114,162 @@ class DefaultTreePack : public TreePack
 					}
 				return w;
 				}
+			}
+		virtual xmlNodePtr svg(TreePack* c,xmlDocPtr document)
+			{
+			Hershey hershey;
+	
+			if( this->parent == null)
+				{
+				xmlNodePtr svg = ::xmlNewNode(SVG,"svg");
+				svg.setAttribute("width",this->bounds.width);
+				svg.setAttribute("height",this->bounds.height);
+		
+		
+				xmlNodePtr defs = ::xmlNewNode(SVG,"defs");
+				svg.appendChild(defs);
+		
+				xmlNodePtr style = ::xmlNewNode(SVG,"style");
+				style.setAttribute("type","text/css");
+				style.appendChild(document.createTextNode(
+					"svg {fill:none;stroke:black;stroke-width:0.5px;}\n"+
+					".r0 {fill:rgb(240,240,240);stroke:black;stroke-width:0.5px;}\n"+
+					".r1 {fill:rgb(220,220,220);stroke:black;stroke-width:0.5px;}\n"+
+					".lbla0 {stroke:black;stroke-width:1px;}\n"+
+					".lblb0 {stroke:red;stroke-width:1px;}\n"+
+					".lbla1 {stroke:gray;stroke-width:1px;}\n"+
+					".lblb1 {stroke:red;stroke-width:1px;}\n"+
+					""
+					));
+
+				defs.appendChild(style);
+		
+				xmlNodePtr title = ::xmlNewNode(SVG,"svg:title");
+				title.appendChild(document.createTextNode("TreeMap"));
+				svg.appendChild(title);
+		
+				xmlNodePtr rect =  document.createElementNS(SVG,"svg:rect");
+				rect.setAttribute("x",0);
+				rect.setAttribute("y",0);
+				rect.setAttribute("width",(this->bounds.width-1));
+				rect.setAttribute("height",(this->bounds.height-1));
+				rect.setAttribute("style","fill:white;stroke:black;");
+				::xmlAddChild(svg,rect);
+	
+		
+				xmlNodePtr g = document.createElementNS(SVG,"svg:g");
+				::xmlAddChild(svg,g);
+		
+				var L = [];
+				for(var k in this->children) L.push(this->children[k]);
+				packer.layout2(L,this->bounds);
+		
+				for(var c in L)
+					{
+					var d = L[c].svg(packer);
+					if(d==null) continue;
+					g.appendChild(d);
+					}
+		
+				rect =  document.createElementNS(SVG,"svg:rect");
+				rect.setAttribute("x",0);
+				rect.setAttribute("y",0);
+				rect.setAttribute("width",(this->bounds.width-1));
+				rect.setAttribute("height",(this->bounds.height-1));
+				rect.setAttribute("style","fill:none;stroke:black;");
+				::xmlAddChild(svg,rect);
+			
+				return svg;
+				}
+			else
+				{
+		
+				if(this->getWeight()<=0)
+					   {
+					   return null;
+					   }
+		
+				   var bounds = this->getBounds();
+				   var insets = bounds.inset(0.9);
+				   var frameUsed=bounds;
+				   
+				   
+				   if(bounds.getWidth()<=1 || bounds.getHeight()<=1)
+					   {
+					   return null;
+					   }
+				   var g = document.createElementNS(SVG,"svg:g");
+
+				   
+				   
+
+				   var rect =  document.createElementNS(SVG,"svg:rect");
+				   g.appendChild(rect);
+				   rect.setAttribute("x",frameUsed.x);
+		   		   rect.setAttribute("y",frameUsed.y);
+		   		   rect.setAttribute("width",frameUsed.width);
+		   		   rect.setAttribute("height",frameUsed.height);
+		   		   rect.setAttribute("class", "r"+(this->getDepth()%2));
+		   		   var title = document.createElementNS(SVG,"svg:title");
+		   		   rect.appendChild(title);
+		   		   title.appendChild( document.createTextNode(this->category+":"+this->name+"="+this->getWeight()));
+
+		
+				   if(!this->isLeaf())
+					   {
+					   var path =  document.createElementNS(SVG,"svg:path");
+					   path.setAttribute("style","stroke:black;fill:none;");
+					   path.setAttribute("d", hershey.svgPath(this->name+"="+this->getWeight(), this->getTitleFrame()) );
+					   path.setAttribute("title",this->category+":"+this->name+"="+this->getWeight());
+
+					   g.appendChild(path);
+					   
+					   
+					   
+					   var L = [];
+					   for(var k in this->children) L.push(this->children[k]);
+					   packer.layout2(L,this->getChildrenFrame());
+					   
+					   for(var c in L)
+						{
+						var d = L[c].svg(packer);
+						if(d==null) {
+							continue;
+							}
+						g.appendChild(d);
+						}
+					   
+					   }
+				   else
+					   {
+
+					  
+					   	var f_up= new Rectangle(
+					   			insets.getX(),insets.getY(),
+					   			insets.getWidth(),insets.getHeight()/2.0
+					   			).inset(0.9);
+					   	var p1= document.createElementNS(SVG,"svg:path");
+					   	 g.appendChild(p1);
+					   	p1.setAttribute("class","lbla"+(this->getDepth()%2));
+						p1.setAttribute("d",hershey.svgPath(this->name,f_up));
+						p1.setAttribute("style","stroke-width:"+ 
+							(3.0/(this->getDepth()+1) )
+							);
+
+						var f_down=new Rectangle(
+								insets.getX(),insets.getCenterY(),
+								insets.getWidth(),insets.getHeight()/2.0
+					   			);
+					   	var p2= document.createElementNS(SVG,"svg:path");
+					   	p2.setAttribute("class","lblb"+(this->getDepth()%2));
+					   	p2.setAttribute("d",hershey.svgPath(""+this->getWeight(),f_down));
+					   	g.appendChild(p2);
+					   	 
+						//w.writeAttribute("d", hershey.svgPath(convertWeightToString(),f_down) );
+						//w.writeAttribute("class","lblb"+(getDepth()%2));
+					   }
+				   
+				   return g;
 			}
 		};
 
@@ -177,7 +334,7 @@ void Packer::layout(std::vector<TreePack*>* items, int start, int end, const Rec
         if (w<h)
         {
             // height/width
-            while (mid<=end)
+            while (mid+1<end)
             {
                 double aspect=normAspect(h,w,a,b);
                 double q=items->at(mid)->getWeight()/total;
@@ -191,7 +348,7 @@ void Packer::layout(std::vector<TreePack*>* items, int start, int end, const Rec
         else
         {
             // width/height
-            while (mid<=end)
+            while (mid+1<end)
             {
                 double aspect=normAspect(w,h,a,b);
                 double q=items->at(mid)->getWeight()/total;
@@ -263,7 +420,165 @@ void Packer::sliceLayout(std::vector<TreePack*>* items, int start, int end, Rect
                 a+=b;
             }
         }
-        
+ 
+ 
+xmlNodePtr TreePack::svg(Packer* packer) {
+	var hershey = new Hershey();
+	
+	if( this->parent == null)
+		{
+		var svg = document.createElementNS(SVG,"svg:svg");
+		svg.setAttribute("width",this->bounds.width);
+		svg.setAttribute("height",this->bounds.height);
+		
+		
+		var defs = document.createElementNS(SVG,"svg:defs");
+		svg.appendChild(defs);
+		
+		var style = document.createElementNS(SVG,"svg:style");
+		style.setAttribute("type","text/css");
+		style.appendChild(document.createTextNode(
+			"svg {fill:none;stroke:black;stroke-width:0.5px;}\n"+
+			".r0 {fill:rgb(240,240,240);stroke:black;stroke-width:0.5px;}\n"+
+			".r1 {fill:rgb(220,220,220);stroke:black;stroke-width:0.5px;}\n"+
+			".lbla0 {stroke:black;stroke-width:1px;}\n"+
+			".lblb0 {stroke:red;stroke-width:1px;}\n"+
+			".lbla1 {stroke:gray;stroke-width:1px;}\n"+
+			".lblb1 {stroke:red;stroke-width:1px;}\n"+
+			""
+			));
+
+		defs.appendChild(style);
+		
+		var title = document.createElementNS(SVG,"svg:title");
+		title.appendChild(document.createTextNode("TreeMap"));
+		svg.appendChild(title);
+		
+		var rect =  document.createElementNS(SVG,"svg:rect");
+		rect.setAttribute("x",0);
+		rect.setAttribute("y",0);
+		rect.setAttribute("width",(this->bounds.width-1));
+		rect.setAttribute("height",(this->bounds.height-1));
+		rect.setAttribute("style","fill:white;stroke:black;");
+		svg.appendChild(rect);
+	
+		
+		var g = document.createElementNS(SVG,"svg:g");
+		svg.appendChild(g);
+		
+		var L = [];
+		for(var k in this->children) L.push(this->children[k]);
+	        packer.layout2(L,this->bounds);
+		
+		for(var c in L)
+			{
+			var d = L[c].svg(packer);
+			if(d==null) continue;
+			g.appendChild(d);
+			}
+		
+		rect =  document.createElementNS(SVG,"svg:rect");
+		rect.setAttribute("x",0);
+		rect.setAttribute("y",0);
+		rect.setAttribute("width",(this->bounds.width-1));
+		rect.setAttribute("height",(this->bounds.height-1));
+		rect.setAttribute("style","fill:none;stroke:black;");
+		svg.appendChild(rect);
+	        
+		return svg;
+		}
+	else
+		{
+		
+		if(this->getWeight()<=0)
+			   {
+			   return null;
+			   }
+		
+		   var bounds = this->getBounds();
+		   var insets = bounds.inset(0.9);
+		   var frameUsed=bounds;
+		   
+		   
+		   if(bounds.getWidth()<=1 || bounds.getHeight()<=1)
+			   {
+			   return null;
+			   }
+		   var g = document.createElementNS(SVG,"svg:g");
+
+		   
+		   
+
+		   var rect =  document.createElementNS(SVG,"svg:rect");
+		   g.appendChild(rect);
+		   rect.setAttribute("x",frameUsed.x);
+   		   rect.setAttribute("y",frameUsed.y);
+   		   rect.setAttribute("width",frameUsed.width);
+   		   rect.setAttribute("height",frameUsed.height);
+   		   rect.setAttribute("class", "r"+(this->getDepth()%2));
+   		   var title = document.createElementNS(SVG,"svg:title");
+   		   rect.appendChild(title);
+   		   title.appendChild( document.createTextNode(this->category+":"+this->name+"="+this->getWeight()));
+
+		
+		   if(!this->isLeaf())
+			   {
+			   var path =  document.createElementNS(SVG,"svg:path");
+			   path.setAttribute("style","stroke:black;fill:none;");
+			   path.setAttribute("d", hershey.svgPath(this->name+"="+this->getWeight(), this->getTitleFrame()) );
+			   path.setAttribute("title",this->category+":"+this->name+"="+this->getWeight());
+
+			   g.appendChild(path);
+			   
+			   
+			   
+			   var L = [];
+			   for(var k in this->children) L.push(this->children[k]);
+	                   packer.layout2(L,this->getChildrenFrame());
+			   
+			   for(var c in L)
+				{
+				var d = L[c].svg(packer);
+				if(d==null) {
+					continue;
+					}
+				g.appendChild(d);
+				}
+			   
+			   }
+		   else
+			   {
+
+			  
+			   	var f_up= new Rectangle(
+			   			insets.getX(),insets.getY(),
+			   			insets.getWidth(),insets.getHeight()/2.0
+			   			).inset(0.9);
+			   	var p1= document.createElementNS(SVG,"svg:path");
+			   	 g.appendChild(p1);
+			   	p1.setAttribute("class","lbla"+(this->getDepth()%2));
+				p1.setAttribute("d",hershey.svgPath(this->name,f_up));
+				p1.setAttribute("style","stroke-width:"+ 
+					(3.0/(this->getDepth()+1) )
+					);
+
+				var f_down=new Rectangle(
+						insets.getX(),insets.getCenterY(),
+						insets.getWidth(),insets.getHeight()/2.0
+			   			);
+			   	var p2= document.createElementNS(SVG,"svg:path");
+			   	p2.setAttribute("class","lblb"+(this->getDepth()%2));
+			   	p2.setAttribute("d",hershey.svgPath(""+this->getWeight(),f_down));
+			   	g.appendChild(p2);
+			   	 
+				//w.writeAttribute("d", hershey.svgPath(convertWeightToString(),f_down) );
+				//w.writeAttribute("class","lblb"+(getDepth()%2));
+			   }
+		   
+		   return g;
+		   }
+	}
+		 
 #define SETATTRIBUTE(NODE,NAME,content) do {ostringstream _os; _os << content; xmlSetProp(NODE,NAME,_os.str()); } while(0)
 
 class TreePackApp: public TreePackBase
@@ -282,13 +597,17 @@ class TreePackApp: public TreePackBase
 				THROW("Cannot read 1st line");
 				}
 			splitter.split(line,header);
+			if(header.size()<=1)
+				{
+				THROW("expected at least two columns.");
+				}
 
 			RootTreePack root;
 			xmlDocPtr dom = ::xmlNewDoc("1.0");
 			xmlNsPtr svgns = ::xmlNewNs(dom, "",NULL);
-			xmlNodePtr root = xmlNewNode(svgns,"svg");
-			SETATTRIBUTE(root,"width",image_width);
-			SETATTRIBUTE(root,"height",image_height);
+			xmlNodePtr svgroot = xmlNewNode(svgns,"svg");
+			SETATTRIBUTE(svgroot,"width",image_width);
+			SETATTRIBUTE(svgroot,"height",image_height);
 			
 				
 			int nLine=0;
@@ -299,23 +618,28 @@ class TreePackApp: public TreePackBase
 				if(tokens.size() != header.size()) {
 					THROW("line " << nLine << ":\"" << line << "\". Expected " << header.size() << " tokens but got " << tokens.size());
 					}
+					
+				double weight = parseDouble(tokens[tokens.length-1].c_str());
+					
 				DefaultTreePack* curr = &root;
-				for(vector<std::string>::size_type i=0; i< tokens.size();++i) {
-					std::map<std::string,DefaultTreePack*>::iterator r = curr->children.find(tokens[i]);
+				
+				for(vector<std::string>::size_type i=0; i+1< tokens.size();++i) {
+					std::string& key = tokens[i];
+					std::map<std::string,DefaultTreePack*>::iterator r = curr->children.find(key);
 					if( r == curr->children.end() )
 						{
 						DefaultTreePack* c= new DefaultTreePack;
 						c->category.assign(header[i]);
-						c->name.assign(tokens[i]);
+						c->name.assign(key);
 						c->parent = curr;
-						c->weight = 1.0;
+						c->weight = weight;
 						curr->children.insert( make_pair(c->name,c) );
 						curr = c;
 						}
 					else
 						{
 						DefaultTreePack* c= r->second;
-						c->weight += 1.0;
+						c->weight += weight;
 						curr = c;
 						}
 					}
@@ -326,58 +650,16 @@ class TreePackApp: public TreePackBase
 			root.bounds.y=0;
 			root.bounds.width=this->image_width;
 			root.bounds.height=this->image_height;
-			
+			appendChild(svgroot,root.svg(&packer));
 			
 			::xmlDocDump(stdout,dom);
 			
-			xmlTextWriterPtr writer = xmlNewTextWriterFilename("-", 0);
-			if(writer==NULL) THROW("cannot create xml writer");
-			xmlTextWriterStartDocument(writer, NULL, "ISO-8859-1", NULL);
-			paint(&packer,&root,writer,0);
-			xmlTextWriterEndDocument(writer);
-			xmlFreeTextWriter(writer);
-			xmlCleanupParser();
 			xmlMemoryDump();
 			}
 
 #define WRITE_ATTRIBUTE(ATT,VALUE) { ostringstream _os; _os << VALUE; string _s = _os.str(); ::xmlTextWriterWriteAttribute(writer, BAD_CAST ATT, BAD_CAST _s.c_str());}
  
-		void paint(Packer* packer,DefaultTreePack* node,xmlTextWriterPtr writer,int depth) {
-			
-			
-			std::vector<TreePack*> items;
-			for(std::map<std::string,DefaultTreePack*>::const_iterator r= node->children.begin();
-						r!= node->children.end();
-						++r)
-						{
-						items.push_back(r->second);
-						}
-			if(!node->children.empty()) {		
-				packer->layout(&items,node->bounds);
-				}
 		
-			::xmlTextWriterStartElement(writer, BAD_CAST "node");
-			::xmlTextWriterWriteAttribute(writer, BAD_CAST "name", BAD_CAST node->name.c_str());
-			WRITE_ATTRIBUTE("x",node->bounds.x);
-			WRITE_ATTRIBUTE("y",node->bounds.y);
-			if(depth!=0) WRITE_ATTRIBUTE("category",node->category);
-			WRITE_ATTRIBUTE("width",node->bounds.width);
-			WRITE_ATTRIBUTE("height",node->bounds.height);
-			WRITE_ATTRIBUTE("weight",node->getWeight());
-			WRITE_ATTRIBUTE("depth",depth);
-			
-					
-			for(std::map<std::string,DefaultTreePack*>::const_iterator r=  node->children.begin();
-						r!= node->children.end();
-						++r)
-						{
-						paint(packer,r->second,writer,depth+1);
-
-						}
-
-
-			::xmlTextWriterEndElement(writer);
-			}
 
 		
 		virtual int main(int argc, char** argv) {
