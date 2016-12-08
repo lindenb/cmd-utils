@@ -7,47 +7,140 @@
 #include "stringsplitter.hh"
 #include "hershey.hh"
 #include "treepack.tab.h"
-
+#include "debug.hh"
 
 using namespace std;
 
-template <typename T>
-struct Rect {
-		T x;
-		T y;
-		T width;
-		T height;
-		Rect(){}
-		Rect(T x,T y,T width,T height):x(x),y(y),width(width),height(height) {}
-		T getWidth() const { return this->width;}
-		T getHeight() const { return this->height;}
-		T getX() const { return this->x;}
-		T getY() const { return this->y;}
+
+struct Rectangle {
+		double x;
+		double y;
+		double width;
+		double height;
+		Rectangle(){}
+		Rectangle(double x,double y,double width,double height):x(x),y(y),width(width),height(height) {}
+		double getWidth() const { return this->width;}
+		double getHeight() const { return this->height;}
+		double getX() const { return this->x;}
+		double getY() const { return this->y;}
 		
-		Rect<T> inset(double ratio) {
-			T r1_width= this->getWidth()*ratio;
-			T r1_x= this->getX()+(this->getWidth()-r1_width)/2;
-			T r1_height= this->getHeight()*ratio;
-			T r1_y=this->getY()+(this->getHeight()-r1_height)/2;
-			Rect<T> r1(r1_x,r1_y,r1_width,r1_height);
+		Rectangle inset(double ratio) {
+			double r1_width= this->getWidth()*ratio;
+			double r1_x= this->getX()+(this->getWidth()-r1_width)/2;
+			double r1_height= this->getHeight()*ratio;
+			double r1_y=this->getY()+(this->getHeight()-r1_height)/2;
+			Rectangle r1(r1_x,r1_y,r1_width,r1_height);
 			return r1;
 			}
 		
-		Rect<T> inset() { return this->inset(0.9);}
-		T getMidX() const { return (T)(getX()+getWidth()/2.0);}
-		T getMidY() const { return (T)(getY()+getHeight()/2.0);}
-		T getCenterX() const { return getMidX();}
-		T getCenterY() const { return getMidY();}
+		Rectangle inset() { return this->inset(0.9);}
+		double getMidX() const { return (double)(getX()+getWidth()/2.0);}
+		double getMidY() const { return (double)(getY()+getHeight()/2.0);}
+		double getCenterX() const { return getMidX();}
+		double getCenterY() const { return getMidY();}
 	};
 
-
-typedef Rect<double> Rectangle;
+/*
+static std::ostream& operator<<(std::ostream& out, const Rectangle& r)
+	{
+	out << "rect(" << r.x << "," << r.y << "," << r.width << "," << r.height <<")";
+	return out;
+	}
+*/
 
 
 enum Orientation { VERTICAL, HORIZONTAL};
 enum Direction { ASCENDING, DESCENDING};
 
-class TreePack;
+
+
+
+
+
+class TreePack
+	{
+	public:
+		std::string name;
+		std::string category;
+		TreePack* parent;
+		std::map<std::string,TreePack*> children;
+		Rectangle bounds;
+		double weight;
+
+		virtual ~TreePack() {
+			for(std::map<std::string,TreePack*>::iterator r= children.begin();
+				r!= children.end();
+				++r)
+				{
+				delete r->second;
+				}
+			}
+		
+		virtual bool isLeaf() const {
+			return this->children.empty();
+			}
+		
+		virtual int getDepth() {
+			int d=0;
+			TreePack* curr = this;
+			while(curr->parent!=NULL) {
+				++d;
+				curr = curr->parent;
+				}
+			return d;
+			}
+		
+		Rectangle getTitleFrame()
+			{
+			Rectangle r= this->bounds; 
+			Rectangle frame;
+			frame.height=r.getHeight()*0.1;
+			frame.y=r.getY();
+			frame.width=r.getWidth();
+			frame.x=r.getX();
+			return frame.inset(0.9);
+			}
+		
+		virtual void setBounds(const Rectangle& bounds)	 {
+			this->bounds  = bounds;
+			}
+	
+		virtual Rectangle getBounds()	 {
+			return bounds;
+			}
+		
+		virtual Rectangle getChildrenFrame()	 {
+			Rectangle r= this->bounds; 
+			Rectangle frame;
+			frame.height=r.getHeight()*0.9;//yes again after
+			frame.y=r.y+r.height-frame.height;
+			frame.height=r.getHeight()*0.85;//yes again 
+			frame.width=r.getWidth()*0.95;
+			frame.x=r.getX()+(r.getWidth()-frame.width)/2.0;
+			return frame;
+			}
+			
+	
+		virtual double  getWeight() const	 {
+			if(isLeaf() )
+				{
+				return weight;
+				}
+			else
+				{
+				double w= 0.0;
+		
+				for(std::map<std::string,TreePack*>::const_iterator r= children.begin();
+					r!= children.end();
+					++r)
+					{
+					w += r->second->getWeight();
+					}
+				return w;
+				}
+			}
+
+		};
 
 class Packer {
 	public:
@@ -62,90 +155,6 @@ class Packer {
 		void sliceLayout(std::vector<TreePack*>* items, int start, int end, Rectangle bounds, Orientation orientation, Direction order);
 	};
 
-
-class TreePack
-	{
-	public:
-		virtual ~TreePack()  {}
-		virtual void setBounds(const Rectangle& bounds)=0;
-		virtual Rectangle getBounds()=0;
-		virtual double getWeight() const = 0;
-	};
-
-class DefaultTreePack : public TreePack
-	{
-	public:
-		std::string name;
-		std::string category;
-		DefaultTreePack* parent;
-		std::map<std::string,DefaultTreePack*> children;
-		Rectangle bounds;
-		double weight;
-
-		virtual ~DefaultTreePack() {
-			for(std::map<std::string,DefaultTreePack*>::iterator r= children.begin();
-				r!= children.end();
-				++r)
-				{
-				delete r->second;
-				}
-			}
-		virtual bool isLeaf() const {
-			return this->children.empty();
-			}
-		virtual int getDepth() {
-			int d=0;
-			DefaultTreePack* curr=this;
-			while(curr->parent!=NULL) {
-				++d;
-				curr = curr->parent;
-				}
-			return d;
-			}
-		Rectangle getTitleFrame()
-		{//TODO
-		Rectangle r;
-		return r;
-		}
-		virtual void setBounds(const Rectangle& bounds)	 {
-			this->bounds  = bounds;
-			}
-	
-		virtual Rectangle getBounds()	 {
-			return bounds;
-			}
-				virtual Rectangle getChildrenFrame()	 {
-			return bounds;
-			}
-			
-	
-		virtual double  getWeight() const	 {
-			if(children.empty() )
-				{
-				return weight;
-				}
-			else
-				{
-				double w= 0.0;
-		
-				for(std::map<std::string,DefaultTreePack*>::const_iterator r= children.begin();
-					r!= children.end();
-					++r)
-					{
-					w += r->second->getWeight();
-					}
-				return w;
-				}
-			}
-
-		};
-
-
-class RootTreePack : public DefaultTreePack
-	{
-	public:
-		virtual ~RootTreePack() {}
-	};
 
 
 
@@ -288,33 +297,76 @@ void Packer::sliceLayout(std::vector<TreePack*>* items, int start, int end, Rect
             }
         }
 
-#define SETATTRIBUTE(NODE,NAME,content) do {ostringstream _os; _os << content; ::xmlSetProp(NODE,BAD_CAST NAME,BAD_CAST _os.str().c_str()); } while(0)
+#define SETATTRIBUTE(NODE,NAME,content) do {ostringstream _os; _os << content; string _s(_os.str()); DEBUG(_s); ::xmlSetProp(NODE,BAD_CAST NAME,BAD_CAST _s.c_str()); } while(0)
 
 class TreePackApp: public TreePackBase
 	{
 	public:
 		xmlNsPtr SVG;
+		Hershey hershey;
 		TreePackApp():SVG(NULL) {}
 		virtual ~TreePackApp() {}
 		
+		std::string svg(std::string s,Rectangle r)
+			{
+			if(s.size()==0 || r.width<=0 || r.height<=0) {
+				return "";
+				}
+			double dx=r.width/s.size();
+			if( dx > r.height + 1.0)
+				{
+				double len = s.size()*r.height;
+				double mid = r.x+ r.width/2.0;
+				Rectangle r2(mid-len/2.0,r.y,len,r.height);
+				return svg(s,r2);
+				}
+			if( r.height > r.width )
+				{
+				double nh= r.width - 1.0;
+				double mid = r.y+r.height/2.0;
+				Rectangle r2(r.x,mid-nh/2.0,r.width,nh);
+				return svg(s,r2);
+				} 
+			
+
+			return hershey.svg(s.c_str(),r.x,r.y,r.width,r.height);
+			}
+		
 		double parseDouble(const string& s) {
-			return 0.0;
+			char* p2=NULL;
+			double v = strtod(s.c_str(),&p2);
+			while(isspace(*p2)) ++p2;
+			if(*p2!=0) THROW("BAD number "<< s);
+			return v;
+			}
+		
+		double fromUniq(std::string& s)
+			{
+			long n=0;
+			size_t i=0;
+			while(i<s.size() && s[i]==' ') ++i;
+			while(i<s.size() && isdigit(s[i])) { n= n*10 + s[i]-'0';++i;}
+			if(n==0 || i>=s.size() ||  s[i]!=' ') THROW("expected a space after number in " << s);
+			s.erase(0,i);
+			return (double)n;
 			}
 
-		xmlNodePtr svg(DefaultTreePack* node,Packer* packer)
-			{
-			Hershey hershey;
-	
+		xmlNodePtr svg(xmlDocPtr dom,TreePack* node,Packer* packer)
+			{DEBUG("");
 			if( node->parent == NULL)
 				{
-				xmlNodePtr svg = ::xmlNewNode(SVG,BAD_CAST "svg");
-				SETATTRIBUTE(svg,"width",node->bounds.width);
-				SETATTRIBUTE(svg,"height",node->bounds.height);
-		
+				xmlNodePtr svg = ::xmlNewDocNode(dom,NULL,BAD_CAST"svg",BAD_CAST NULL);
+				//xmlNodePtr svgroot = ::xmlNewNode( NULL,BAD_CAST"svg");
+				this->SVG = ::xmlNewNs(svg, BAD_CAST"http://www.w3.org/2000/svg",BAD_CAST NULL);
+				::xmlDocSetRootElement(dom,svg); 
+				SETATTRIBUTE(svg,"width",this->image_width);
+				SETATTRIBUTE(svg,"height",this->image_height);
+			
+				
+
 		
 				xmlNodePtr defs = ::xmlNewNode(SVG,BAD_CAST "defs");
 				::xmlAddChild(svg,defs);
-		
 				xmlNodePtr style = ::xmlNewNode(SVG,BAD_CAST "style");
 				SETATTRIBUTE(style,"type","text/css");
 				::xmlAddChild(style,::xmlNewText(BAD_CAST 
@@ -346,7 +398,7 @@ class TreePackApp: public TreePackBase
 				::xmlAddChild(svg,g);
 		
 				vector<TreePack*> L;
-				for(map<string,DefaultTreePack*>::iterator k=node->children.begin();
+				for(map<string,TreePack*>::iterator k=node->children.begin();
 					k!=node->children.end();
 					++k
 					) {
@@ -355,86 +407,89 @@ class TreePackApp: public TreePackBase
 				
 				packer->layout(&L,node->bounds);
 		
-				for(size_t c=0;c< L.size();++c)
+				for(vector<TreePack*>::size_type c=0;c< L.size();++c)
 					{
-					xmlNodePtr d = this->svg((DefaultTreePack*)L[c],packer);
+					xmlNodePtr d = this->svg(dom,(TreePack*)L[c],packer);
 					if(d==NULL) continue;
 					::xmlAddChild(g,d);
 					}
-		
 				rect =   ::xmlNewNode(SVG,BAD_CAST "rect");
 				SETATTRIBUTE(rect,"x",0);
 				SETATTRIBUTE(rect,"y",0);
 				SETATTRIBUTE(rect,"width",(node->bounds.width-1));
 				SETATTRIBUTE(rect,"height",(node->bounds.height-1));
 				SETATTRIBUTE(rect,"style","fill:none;stroke:black;");
-				::xmlAddChild(svg,rect);
-			
+				::xmlAddChild(svg,rect);DEBUG("");
 				return svg;
 				}
 			else
-				{
-		
+				{DEBUG("");
 				if(node->getWeight()<=0)
-					   {
+					   {DEBUG("");
 					   return NULL;
 					   }
 		
 				   Rectangle bounds = node->getBounds();
 				   Rectangle insets = bounds.inset(0.9);
 				   Rectangle frameUsed=bounds;
-				   
+				   DEBUG("");
 				   
 				   if(bounds.getWidth()<=1 || bounds.getHeight()<=1)
-					   {
+					   {DEBUG("");
 					   return NULL;
 					   }
 				   xmlNodePtr g = ::xmlNewNode(SVG,BAD_CAST "g");
-
+DEBUG("");
 				   
 				   
 
-				   xmlNodePtr rect =  ::xmlNewNode(SVG,BAD_CAST "rect");
-				   ::xmlAddChild(g,rect);
+				   xmlNodePtr rect =  ::xmlNewNode(SVG,BAD_CAST "rect");DEBUG("");
+				   ::xmlAddChild(g,rect);DEBUG("");
 				   SETATTRIBUTE(rect,"x",frameUsed.x);
 		   		   SETATTRIBUTE(rect,"y",frameUsed.y);
 		   		   SETATTRIBUTE(rect,"width",frameUsed.width);
 		   		   SETATTRIBUTE(rect,"height",frameUsed.height);
-		   		   SETATTRIBUTE(rect,"class", "r"+(node->getDepth()%2));
-		   		   xmlNodePtr title = ::xmlNewNode(SVG,BAD_CAST"title");
+		   		   {DEBUG("");
+		   		     ostringstream _os;DEBUG((node==0));
+		   		     _os <<  "r"<<(node->getDepth()%2);DEBUG("");
+		   		     string _s(_os.str());DEBUG("");
+		   		   SETATTRIBUTE(rect,"class",_s);DEBUG("");
+		   		   }DEBUG("");
+		   		   xmlNodePtr title = ::xmlNewNode(SVG,BAD_CAST"title");DEBUG("");
 		   		   
 		   		    ::xmlAddChild(rect,title);
-		   		   
-		   		    ::xmlAddChild(title,rect);
+		   		   DEBUG("");
+
 		   		   
 		   		    {
 		   		    ostringstream _os;
 		   		    _os << node->category<<":"<<node->name<<"="<<node->getWeight();
-		   		    ::xmlAddChild(title,::xmlNewText(BAD_CAST _os.str().c_str()));
+		   		    string _s(_os.str());
+		   		    ::xmlAddChild(title,::xmlNewText(BAD_CAST _s.c_str()));
 					}
-		
+				
 				   if(!node->isLeaf())
-					   {
+					   {DEBUG("");
 					   xmlNodePtr path = ::xmlNewNode(SVG,BAD_CAST"path");
 					   SETATTRIBUTE(path,"style","stroke:black;fill:none;");
 					   
 					   {
 					    ostringstream _os;
 					    _os << node->name<<"="<<node->getWeight();
-					   SETATTRIBUTE(path,"d", hershey.svgPath(_os.str(), node->getTitleFrame()) );
+					   SETATTRIBUTE(path,"d", svg(_os.str(), node->getTitleFrame()) );
 					   }
 					   
 					   {
 					   ostringstream _os;
 					   _os << node->category<<":"<<node->name+"="<<node->getWeight();
 					   SETATTRIBUTE(path,"title",_os.str());
-						}
+					   }
 
 					   ::xmlAddChild(g,path);
 					   
 					   
 					   vector<TreePack*> L;
-					  for(map<string,DefaultTreePack*>::iterator k=node->children.begin();
+					  for(map<string,TreePack*>::iterator k=node->children.begin();
 							k!=node->children.end();
 							++k
 							)
@@ -445,30 +500,30 @@ class TreePackApp: public TreePackBase
 					   
 					   for(size_t  c=0;c<L.size();++c)
 						{
-						xmlNodePtr d = svg((DefaultTreePack*) L[c],packer);
+						xmlNodePtr d = svg(dom,(TreePack*) L[c],packer);
 						if(d==NULL) {
 							continue;
 							}
 
 						::xmlAddChild(g,d);
 						}
-					   
+					 
 					   }
 				   else
 					   {
-
-					  
-					   	Rectangle f_up= Rectangle(
+					  DEBUG("");
+					   	Rectangle f_up(
 					   			insets.getX(),insets.getY(),
 					   			insets.getWidth(),insets.getHeight()/2.0
-					   			).inset(0.9);
+					   			);
+					   	f_up = f_up.inset(0.9);
 					   	xmlNodePtr p1= ::xmlNewNode(SVG,BAD_CAST"path");
 
 					   	::xmlAddChild(g,p1); 
 					   	 
-					   	SETATTRIBUTE(p1,"class","lbla"+(node->getDepth()%2));
-						SETATTRIBUTE(p1,"d",hershey.svgPath(node->name,f_up));
-						SETATTRIBUTE(p1,"style","stroke-width:"+ 
+					   	SETATTRIBUTE(p1,"class","lbla"<<(node->getDepth()%2));
+						SETATTRIBUTE(p1,"d",svg(node->name,f_up));
+						SETATTRIBUTE(p1,"style","stroke-width:"<<
 							(3.0/(node->getDepth()+1) )
 							);
 
@@ -476,20 +531,26 @@ class TreePackApp: public TreePackBase
 								insets.getX(),insets.getCenterY(),
 								insets.getWidth(),insets.getHeight()/2.0
 					   			);
-					   	xmlNodePtr p2= document.createElementNS(SVG,"svg:path");
-					   	SETATTRIBUTE(p2,"class","lblb"+(node->getDepth()%2));
-					   	SETATTRIBUTE(p2,"d",hershey.svgPath(""+node->getWeight(),f_down));
+					   	xmlNodePtr p2= ::xmlNewNode(SVG,BAD_CAST"path");
+					   	SETATTRIBUTE(p2,"class","lblb"<<(node->getDepth()%2));
+					   	
+					   	{
+					   	 ostringstream _os;
+					   	 _os << node->getWeight();
+					   	 string _s(_os.str());
+					   	SETATTRIBUTE(p2,"d",svg(_s,f_down));
+					   	}
+					   	
 					   	::xmlAddChild(g,p2); 
-					   	 
-						//w.writeAttribute("d", hershey.svgPath(convertWeightToString(),f_down) );
-						//w.writeAttribute("class","lblb"+(getDepth()%2));
-					   }
-				   
+					  
+
+					   }DEBUG("");
 				   return g;
 				   }
 			}
 
 		virtual void processIstream(const char* fname,istream& in) {
+			DEBUG("");
 			StringSplitter splitter;
 			splitter.set_delimiter(this->delimiter);
 			vector<std::string> header;
@@ -497,39 +558,53 @@ class TreePackApp: public TreePackBase
 			if(!getline(in,line)) {
 				THROW("Cannot read 1st line");
 				}
+			if(input_from_unique) {
+				 fromUniq(line);
+				}
 			splitter.split(line,header);
-			if(header.size()<=1)
+			if(header.size()<=1 && !input_from_unique)
 				{
 				THROW("expected at least two columns.");
 				}
 
-			RootTreePack root;
+			TreePack root;
 			xmlDocPtr dom = ::xmlNewDoc(BAD_CAST "1.0");
-			xmlNsPtr svgns = NULL;//::xmlNewNs(dom, BAD_CAST"",NULL);
-			xmlNodePtr svgroot = xmlNewNode(svgns,BAD_CAST"svg");
-			SETATTRIBUTE(svgroot,"width",image_width);
-			SETATTRIBUTE(svgroot,"height",image_height);
 			
+			DEBUG("");
 				
 			int nLine=0;
 			while(getline(in,line)) {
 				++nLine;
+				double weight ;
 				vector<std::string> tokens;
+				if(input_from_unique)
+					{
+					weight = fromUniq(line);
+					}
+				
 				splitter.split(line,tokens);
 				if(tokens.size() != header.size()) {
 					THROW("line " << nLine << ":\"" << line << "\". Expected " << header.size() << " tokens but got " << tokens.size());
 					}
 					
-				double weight = parseDouble(tokens[tokens.size()-1].c_str());
 					
-				DefaultTreePack* curr = &root;
+				if(!input_from_unique)
+					{
+					weight = parseDouble(tokens[tokens.size()-1].c_str());
+					}
+				if( weight <= 0 ) {
+					continue;
+					}		
+				TreePack* curr = &root;
 				
-				for(vector<std::string>::size_type i=0; i+1< tokens.size();++i) {
+				for(vector<std::string>::size_type i=0;
+					i+(input_from_unique?0:1) < tokens.size();
+					++i) {
 					std::string& key = tokens[i];
-					std::map<std::string,DefaultTreePack*>::iterator r = curr->children.find(key);
+					std::map<std::string,TreePack*>::iterator r = curr->children.find(key);
 					if( r == curr->children.end() )
 						{
-						DefaultTreePack* c= new DefaultTreePack;
+						TreePack* c= new TreePack;
 						c->category.assign(header[i]);
 						c->name.assign(key);
 						c->parent = curr;
@@ -539,7 +614,7 @@ class TreePackApp: public TreePackBase
 						}
 					else
 						{
-						DefaultTreePack* c= r->second;
+						TreePack* c= r->second;
 						c->weight += weight;
 						curr = c;
 						}
@@ -551,12 +626,25 @@ class TreePackApp: public TreePackBase
 			root.bounds.y=0;
 			root.bounds.width=this->image_width;
 			root.bounds.height=this->image_height;
-			svg(&root,&packer);
-
+			svg(dom,&root,&packer);
 			
-			::xmlDocDump(stdout,dom);
-			
-			xmlMemoryDump();
+			FILE* out = stdout;
+			if( output_name!=NULL)
+				{
+				out = fopen(output_name,"w");
+				if( out == NULL) {
+					THROW("Cannot open " << output_name << ". " << strerror(errno) );
+					}
+				
+				}
+			::xmlDocDump(out,dom);
+			fflush(out);
+			if( output_name!=NULL)
+				{
+				fclose(out);
+				}
+			::xmlFreeDoc(dom);
+			::xmlMemoryDump();
 			}
 
 #define WRITE_ATTRIBUTE(ATT,VALUE) { ostringstream _os; _os << VALUE; string _s = _os.str(); ::xmlTextWriterWriteAttribute(writer, BAD_CAST ATT, BAD_CAST _s.c_str());}

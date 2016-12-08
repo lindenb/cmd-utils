@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include <cstdlib>
 #include <cctype>
 #include <iostream>
+#include <sstream>
 #include "config.h"
 
 #if HAS_LIB_CAIRO == 1
@@ -121,6 +122,7 @@ class Hershey
 					case '#': return " 12MXRLPW RULSW ROPVP ROSVS";//233
 					case '*': return "  9JZRLRX RMOWU RWOMU";//728
 					case '=': return "  6LXNPVP RNTVT";//226
+					case '+': return "  6LXRNRV RNRVR";
 					case '-': return "  3KYKRYR";//806
 					case '_': return "  3JZJZZZ";//998
 					case '[': return " 12MWPHP\\ RQHQ\\ RPHUH RP\\U\\";//1223
@@ -185,7 +187,22 @@ class Hershey
 				virtual void lineto(double x,double y)=0;
 				virtual void moveto(double x,double y)=0;
 			};
-		
+	private:
+	
+		class SVGPathDrawer: public Drawer
+			{
+			private:
+				std::ostream& out;
+			public:
+				SVGPathDrawer(std::ostream& out):out(out) {}
+				virtual ~SVGPathDrawer() {}
+				virtual void lineto(double x,double y) {out << "L " << x << " " << y;}
+				virtual void moveto(double x,double y) {out << "M " << x << " " << y;}
+			};
+	
+	public:	
+	
+	
 		void draw(
 			Drawer* out,
 			const char* s,
@@ -197,7 +214,7 @@ class Hershey
 			
 			size_t s_length=strlen(s);
 			if(s_length==0) return;
-	
+		
 			size_t i=0,n;
 			double dx=width/s_length;
 			for(i=0;i < s_length;++i)
@@ -221,7 +238,27 @@ class Hershey
 				}	
 			}
 		
+		void svg(
+			std::ostream& out,
+			const char* s,
+			double x, double y,
+			double width, double height
+			)
+			{
+			SVGPathDrawer d(out);
+			this->draw(&d,s,x,y,width,height);
+			}
 		
+		std::string svg(
+			const char* s,
+			double x, double y,
+			double width, double height
+			)
+			{
+			std::ostringstream os;
+			this->svg(os,s,x,y,width,height);
+			return os.str();
+			}
 		
 		void postscript(
 			std::ostream& out,

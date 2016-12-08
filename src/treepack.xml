@@ -5,8 +5,8 @@
 	<option name="delimiter" opt="d" longopt="delim" default="\t" type="char">
 		<description>Column delimiter</description>
 	</option>
-	<option name="last_column_is_weight" type="bool" opt="a" longopt="lastw" >
-		<description>last column is weight</description>
+	<option name="input_from_unique" type="bool" opt="u" longopt="uniq" >
+		<description>input is `uniq -c` output</description>
 	</option>
 	<option name="image_width" type="int" opt="W" longopt="width" default="1000">
 		<description>image width</description>
