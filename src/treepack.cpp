@@ -7,7 +7,7 @@
 #include "stringsplitter.hh"
 #include "hershey.hh"
 #include "treepack.tab.h"
-#include "debug.hh"
+
 
 using namespace std;
 
@@ -66,6 +66,10 @@ class TreePack
 		std::map<std::string,TreePack*> children;
 		Rectangle bounds;
 		double weight;
+
+		TreePack():parent(NULL)
+			{
+			}
 
 		virtual ~TreePack() {
 			for(std::map<std::string,TreePack*>::iterator r= children.begin();
@@ -297,7 +301,7 @@ void Packer::sliceLayout(std::vector<TreePack*>* items, int start, int end, Rect
             }
         }
 
-#define SETATTRIBUTE(NODE,NAME,content) do {ostringstream _os; _os << content; string _s(_os.str()); DEBUG(_s); ::xmlSetProp(NODE,BAD_CAST NAME,BAD_CAST _s.c_str()); } while(0)
+#define SETATTRIBUTE(NODE,NAME,CONTENT) do {if(NODE!=0){ostringstream _os; _os << CONTENT; string _s(_os.str());  ::xmlSetProp(NODE,BAD_CAST NAME,BAD_CAST _s.c_str()); }} while(0)
 
 class TreePackApp: public TreePackBase
 	{
@@ -352,7 +356,7 @@ class TreePackApp: public TreePackBase
 			}
 
 		xmlNodePtr svg(xmlDocPtr dom,TreePack* node,Packer* packer)
-			{DEBUG("");
+			{
 			if( node->parent == NULL)
 				{
 				xmlNodePtr svg = ::xmlNewDocNode(dom,NULL,BAD_CAST"svg",BAD_CAST NULL);
@@ -419,46 +423,46 @@ class TreePackApp: public TreePackBase
 				SETATTRIBUTE(rect,"width",(node->bounds.width-1));
 				SETATTRIBUTE(rect,"height",(node->bounds.height-1));
 				SETATTRIBUTE(rect,"style","fill:none;stroke:black;");
-				::xmlAddChild(svg,rect);DEBUG("");
+				::xmlAddChild(svg,rect);
 				return svg;
 				}
 			else
-				{DEBUG("");
+				{
 				if(node->getWeight()<=0)
-					   {DEBUG("");
+					   {
 					   return NULL;
 					   }
 		
 				   Rectangle bounds = node->getBounds();
 				   Rectangle insets = bounds.inset(0.9);
 				   Rectangle frameUsed=bounds;
-				   DEBUG("");
+				   
 				   
 				   if(bounds.getWidth()<=1 || bounds.getHeight()<=1)
-					   {DEBUG("");
+					   {
 					   return NULL;
 					   }
 				   xmlNodePtr g = ::xmlNewNode(SVG,BAD_CAST "g");
-DEBUG("");
+
 				   
 				   
 
-				   xmlNodePtr rect =  ::xmlNewNode(SVG,BAD_CAST "rect");DEBUG("");
-				   ::xmlAddChild(g,rect);DEBUG("");
+				   xmlNodePtr rect =  ::xmlNewNode(SVG,BAD_CAST "rect");
+				   ::xmlAddChild(g,rect);
 				   SETATTRIBUTE(rect,"x",frameUsed.x);
 		   		   SETATTRIBUTE(rect,"y",frameUsed.y);
 		   		   SETATTRIBUTE(rect,"width",frameUsed.width);
 		   		   SETATTRIBUTE(rect,"height",frameUsed.height);
-		   		   {DEBUG("");
-		   		     ostringstream _os;DEBUG((node==0));
-		   		     _os <<  "r"<<(node->getDepth()%2);DEBUG("");
-		   		     string _s(_os.str());DEBUG("");
-		   		   SETATTRIBUTE(rect,"class",_s);DEBUG("");
-		   		   }DEBUG("");
-		   		   xmlNodePtr title = ::xmlNewNode(SVG,BAD_CAST"title");DEBUG("");
+		   		   {
+		   		     ostringstream _os;
+		   		     _os <<  "r"<<(node->getDepth()%2);
+		   		     string _s(_os.str());
+		   		   SETATTRIBUTE(rect,"class",_s);
+		   		   }
+		   		   xmlNodePtr title = ::xmlNewNode(SVG,BAD_CAST"title");
 		   		   
 		   		    ::xmlAddChild(rect,title);
-		   		   DEBUG("");
+		   		   
 
 		   		   
 		   		    {
@@ -469,7 +473,7 @@ DEBUG("");
 					}
 				
 				   if(!node->isLeaf())
-					   {DEBUG("");
+					   {
 					   xmlNodePtr path = ::xmlNewNode(SVG,BAD_CAST"path");
 					   SETATTRIBUTE(path,"style","stroke:black;fill:none;");
 					   
@@ -511,7 +515,7 @@ DEBUG("");
 					   }
 				   else
 					   {
-					  DEBUG("");
+					  
 					   	Rectangle f_up(
 					   			insets.getX(),insets.getY(),
 					   			insets.getWidth(),insets.getHeight()/2.0
@@ -544,13 +548,13 @@ DEBUG("");
 					   	::xmlAddChild(g,p2); 
 					  
 
-					   }DEBUG("");
+					   }
 				   return g;
 				   }
 			}
 
 		virtual void processIstream(const char* fname,istream& in) {
-			DEBUG("");
+			
 			StringSplitter splitter;
 			splitter.set_delimiter(this->delimiter);
 			vector<std::string> header;
@@ -570,7 +574,7 @@ DEBUG("");
 			TreePack root;
 			xmlDocPtr dom = ::xmlNewDoc(BAD_CAST "1.0");
 			
-			DEBUG("");
+			
 				
 			int nLine=0;
 			while(getline(in,line)) {
