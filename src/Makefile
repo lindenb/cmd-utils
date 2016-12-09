@@ -18,6 +18,7 @@ define compile0
 
 $(1) : $$(addprefix $(1).,cpp xml)  xml2h.xsl preproc.xsl config.h $(2)
 	xsltproc preproc.xsl $$(filter %.xml,$$^) | xsltproc xml2h.xsl -  > $$(addsuffix .tab.h,$$(basename $$<))
+	xsltproc preproc.xsl $$(filter %.xml,$$^) | xsltproc xml2md.xsl - > ../docs/$$(addsuffix .md,$$(notdir $$(basename $$<)))
 	$$(CC) $(3) -o $$@ $$(CCFLAGS) $(2) $$< $$(filter %.o,$$^) $(4)
 
 endef
