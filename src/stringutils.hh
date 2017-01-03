@@ -33,6 +33,26 @@ class StringUtils
 		bool isHex(int c) const {
 		return (c>='A' && c<='F') || std::isdigit(c); 
 		}
+		
+		std::string& fromUniq(std::string &line,unsigned long* uniqcount) const {
+			unsigned long count=0UL;
+			string::size_type i1=0;
+			while(i1 < line.size() && std::isspace(line[i1])) i1++;
+			if(i1==0) THROW("expected line starting with one or more blanks");
+			string::size_type i2=i1;
+			while(i2 < line.size() && std::isdigit(line[i2])) {
+				count = count*10 + (line[i2]-'0');
+				i2++;
+				}
+			if(i2==i1 || count==0UL ) THROW("expected a number");
+
+			if(!(i2 < line.size() && std::isspace(line[i2]))) {
+				THROW("expected a space after the count");
+				}
+			line = line.substr(i2+1);
+			if(uniqcount!=0) *uniqcount=count;
+			return line;
+			}
 	};
 
 #endif

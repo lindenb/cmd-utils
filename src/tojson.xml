@@ -1,0 +1,24 @@
+<cmd name="ToJson">
+
+
+<options>
+	
+	<option name="delimiter" opt="d" longopt="delimiter" type="char" default="\t">
+		<description>output delimiter</description>
+	</option>
+	<option name="smart_primitives" opt="p" longopt="smart" type="bool">
+		<description>interpret primitive (number, bool, null...)</description>
+	</option>
+	<option name="input_type" opt="t" longopt="type" type="char*">
+		<description>if undefined or 'array', will be treated as a json array. if table will be treated as a table. if object will be treated as a key/value</description>
+	</option>
+	<option name="beforestr" opt="B" longopt="before" type="char*">
+		<description>print this string before the json</description>
+	</option>
+	<option name="afterstr" opt="A" longopt="after" type="char*">
+		<description>print this string after the json</description>
+	</option>
+</options>
+
+
+</cmd>

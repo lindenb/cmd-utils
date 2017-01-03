@@ -50,8 +50,8 @@ $(1).m4.hh : parser.m4
 
 endef
 
-APPS0 =  fromto escape-http math-minmax math-normalize waitforfiles shuffle hershey combination wordcount headtail dispatch escape-xml escape-c colsmd5 linearizefasta tab2spaces groupby table2yxv cutbyname yxv2table math-sum math-mean math-median
-APPS = $(APPS0) table2xml xmlpath treepack json_array_foreach json_object_foreach
+APPS0 =  tojson fromto escape-http math-minmax math-normalize waitforfiles shuffle hershey combination wordcount headtail dispatch escape-xml escape-c colsmd5 linearizefasta tab2spaces groupby table2yxv cutbyname yxv2table math-sum math-mean math-median
+APPS = $(APPS0) wordcloud table2xml xmlpath treepack json_array_foreach json_object_foreach
 
 all:  $(APPS)
 
@@ -66,6 +66,7 @@ $(eval $(foreach A,${APPS0},$(call compile0,${A},,,)))
 $(eval $(call compile0,treepack,,`xml2-config --cflags`,`xml2-config --libs`))
 $(eval $(call compile0,table2xml,,`xml2-config --cflags`,`xml2-config --libs`))
 $(eval $(call compile0,xmlpath,,`xml2-config --cflags`,`xml2-config --libs`))
+$(eval $(call compile0,wordcloud,,`xml2-config --cflags`,`xml2-config --libs`))
 
 json_array_foreach: $(addprefix json_array_foreach, .l .y .xml .cpp)
 	flex -P $@ --header-file=$(addsuffix .flex.h,$@) -o $(addsuffix .flex.c,$@) $(filter %.l,$^)
