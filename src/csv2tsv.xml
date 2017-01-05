@@ -1,0 +1,20 @@
+<cmd name="CsvToTsv">
+
+
+<options>
+	<option name="delimiter" opt="d" longopt="delimiter" type="char" default="\t">
+		<description>output delimiter</description>
+	</option>
+	<option name="csvdelim" opt="i" longopt="indelim" type="char" default=",">
+		<description>input delimiter</description>
+	</option>
+	<option name="quotechar" opt="q" longopt="quote" type="char" default='\"'>
+		<description>quote character</description>
+	</option>
+	<option name="commchar" opt="s" longopt="comment" type="char" default='\0'>
+		<description>Don't convert lines starting with this char</description>
+	</option>
+</options>
+
+
+</cmd>
