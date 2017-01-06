@@ -3,6 +3,7 @@
 
 #include <cctype>
 #include <string>
+#include <iostream>
 
 class StringUtils
 	{
@@ -51,6 +52,11 @@ class StringUtils
 				}
 			line = line.substr(i2+1);
 			if(uniqcount!=0) *uniqcount=count;
+			return line;
+			}
+		std::string unescapeC(std::string s)
+			{
+			
 			return line;
 			}
 	};

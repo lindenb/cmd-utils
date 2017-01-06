@@ -86,6 +86,18 @@ json_object_foreach: $(addprefix json_object_foreach, .y .xml .cpp) json_array_f
 	$(CC) $(CCFLAGS) -o $@  $(addprefix $@,.cpp .flex.o .bison.o)
 	rm json_object_foreach.l
 
+json2xml: $(addprefix json2xml, .y .xml .cpp) json_array_foreach.l
+	sed 's/json_array_foreach/json2xml/g' json_array_foreach.l > json2xml.l
+	flex -P $@ --header-file=$(addsuffix .flex.h,$@) -o $(addsuffix .flex.c,$@) json2xml.l
+	bison  -p $@ --locations --defines=$(addsuffix .bison.h,$@) --output=$(addsuffix .bison.c,$@)  $(filter %.y,$^)
+	$(CC) -c $(CCFLAGS) `xml2-config --cflags` -o $(addsuffix .flex.o,$@) $(addsuffix .flex.c,$@)
+	$(CC) -c $(CCFLAGS) `xml2-config --cflags` -o $(addsuffix .bison.o,$@) $(addsuffix .bison.c,$@)
+	xsltproc preproc.xsl $(filter %.xml,$^) | xsltproc xml2h.xsl -  > $(addsuffix .tab.h,$@)
+	$(CC) $(CCFLAGS) `xml2-config --cflags` -o $@  $(addprefix $@,.cpp .flex.o .bison.o) `xml2-config --libs` 
+	rm json2xml.l
+
+
+
 json_tree.a : 	$(addprefix json_tree, .l .y) json_node.hh
 	flex -P $(basename $@) --header-file=$(addsuffix .flex.h,$(basename $@)) -o $(addsuffix .flex.c,$(basename $@))  $(addsuffix .l,$(basename $@))
 	bison  -p $(basename $@) --locations --defines=$(addsuffix .bison.h,$(basename $@)) --output=$(addsuffix .bison.c,$(basename $@))  $(filter %.y,$^)
