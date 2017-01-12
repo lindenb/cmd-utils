@@ -22,7 +22,6 @@ struct State
 
 static void yyerror(const char* msg)
 	{
-	cerr << "ERROR " << msg << endl;
 	exit(EXIT_FAILURE);
 	}
 
@@ -41,6 +40,19 @@ static void WRITE_STR(std::string* s)
 					{
 					switch(s->at(i+1))
 						{
+						case 'u':
+							{
+							size_t j=0;
+							::xmlTextWriterWriteRaw(xmlWriter,BAD_CAST "&#x");
+						    for(j=0;j< 4 && (i+2+j) <  s->size() ;++j)
+						    	{
+						    	char tmp[2]={s->at(i+2+j),0};
+						    	::xmlTextWriterWriteRaw(xmlWriter,BAD_CAST tmp);
+						    	}
+						    ::xmlTextWriterWriteRaw(xmlWriter,BAD_CAST ";");
+						    i+=j;
+							break;
+							}
 						case 'n': ::xmlTextWriterWriteString(xmlWriter,BAD_CAST "\n");break;
 						case 't': ::xmlTextWriterWriteString(xmlWriter,BAD_CAST "\t");break;
 						case '\\': ::xmlTextWriterWriteString(xmlWriter,BAD_CAST "\\");break;
