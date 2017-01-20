@@ -37,10 +37,10 @@ class StringUtils
 		
 		std::string& fromUniq(std::string &line,unsigned long* uniqcount) const {
 			unsigned long count=0UL;
-			string::size_type i1=0;
+			std::string::size_type i1=0;
 			while(i1 < line.size() && std::isspace(line[i1])) i1++;
 			if(i1==0) THROW("expected line starting with one or more blanks");
-			string::size_type i2=i1;
+			std::string::size_type i2=i1;
 			while(i2 < line.size() && std::isdigit(line[i2])) {
 				count = count*10 + (line[i2]-'0');
 				i2++;
@@ -57,7 +57,7 @@ class StringUtils
 		std::string unescapeC(std::string s)
 			{
 			
-			return line;
+			return s;
 			}
 	};
 

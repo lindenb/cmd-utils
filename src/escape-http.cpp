@@ -23,6 +23,13 @@ char x2c(int c0,int c1)
 		int c1;
 		while((c1=fgetc(in))!=EOF)
 			{
+			if(c1==' ') { cout << "+" ; continue;}
+			if(!isalnum(c1)) { 
+				char tmp[10];
+				sprintf(tmp,"%x", c1);
+				cout << "%" << tmp ;
+				continue;
+				}
 			if(c1!='%') { cout << (char)c1; continue;}
 			int c2 = fgetc(in);
 			if(c2==-1 ) { cout << '%'; break;}
