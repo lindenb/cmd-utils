@@ -1,0 +1,15 @@
+<cmd name="Categorize">
+
+
+<options>
+	<option name="delimiter" opt="d" longopt="delim" default="\t" type="char"></option>
+	<option name="column_index" opt="i" longopt="index" default="1" type="int">
+		<description>Column index (first is 1)</description>
+	</option>
+	<option name="tranches" opt="t" longopt="tranches"  type="char*">
+		<description>How to split the data comma separated list of values. At least one values must be provided</description>
+	</option>
+</options>
+
+
+</cmd>
